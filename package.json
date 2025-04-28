@@ -1,0 +1,21 @@
+{
+  "name": "blog_capstone",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Palash Acharya",
+  "license": "ISC",
+  "description": "A blog application Project",
+  "dependencies": {
+    "axios": "^1.8.2",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "pg": "^8.14.0",
+    "quill-delta-to-html": "^0.12.1"
+  }
+}

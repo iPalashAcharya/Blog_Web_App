@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>BLOG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&family=Roboto:ital,wght@0,300;0,400;0,700;1,400&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="navbarContainer">
+            <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
+            <div class="navLinks">
+                <ul class="navLinkList work-sans">
+                    <li><a href="./">Home</a></li>
+                    <li><a href="./blogs">Blog</a></li>
+                    <li><a href="./author">Profile</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="blogCreationContainer">
+            <%if(locals.post){%>
+            <form id="blogCreationForm" method="post" action="/api/edit/<%=post.blog_id%>">
+                <h1>Edit your blog post</h1>
+                <div class="blogFormContainer">
+                    <label for="blogTitle">
+                        <h4>Title:</h4>
+                        <br>
+                        <input type="text" id="blogTitle" name="title" value="<%=post.title%>">
+                    </label>
+                    <label for="blogTags">
+                        <h4>Tags:</h4>
+                        <br>
+                        <input type="text" id="blogTags" name="tags" value="<%=post.tags%>">
+                    </label>
+                    <label for="blogContent">
+                        <h4>Content:</h4>
+                        <br>
+                        <div id="editor"><%-post.contentHtml%></div>
+                    </label>
+                    <input type="hidden" id="blogContent" name="content">
+                    <button type="submit" name="createButton" value="create"><h4>Create</h4></button>
+                    <button type="submit" name="createButton" value="draft">
+                        <h4>Save as Draft</h4>
+                    </button>
+                </div>
+            </form>
+            <%}else{%>
+
+            <form id="blogCreationForm" method="post" action="/api/post">
+                <h1>Create your blog post</h1>
+                <div class="blogFormContainer">
+                    <label for="blogTitle">
+                        <h4>Title:</h4>
+                        <br>
+                        <input type="text" id="blogTitle" name="blogTitle" placeholder="Enter your blog title">
+                    </label>
+                    <label for="blogTags">
+                        <h4>Tags:</h4>
+                        <br>
+                        <input type="text" id="blogTags" name="blogTags" placeholder="Enter your tags here">
+                    </label>
+                    <label for="blogContent">
+                        <h4>Content:</h4>
+                        <br>
+                        <div id="editor"></div>
+                    </label>
+                    <input type="hidden" id="blogContent" name="blogContent">
+                    <button type="submit" name="createButton" value="create">
+                        <h4>Create</h4>
+                    </button>
+                    <button type="submit" name="createButton" value="draft">
+                        <h4>Save as Draft</h4>
+                    </button>
+                </div>
+            </form>
+            <%}%>
+
+        </div>
+    </main>
+
+
+    <footer>
+        <div class="footerContainer">
+            <ul class="footerList">
+                <li><i class="fa-regular fa-copyright"></i> 2025</li>
+                <li><a href="#">LinkedIn</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">GitHub</a></li>
+                <li><a href="#">Email</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script>
+        const quill = new Quill('#editor', {
+                modules: {
+                    toolbar: {
+                        container: [
+                            [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                            ['bold', 'italic'],
+                            ['link', 'blockquote', 'code-block', 'image'],
+                            [{ list: 'ordered' }, { list: 'bullet' }],
+                        ],
+                        handlers: {
+                            image: function () {
+                                const range = this.quill.getSelection();
+                                const imageUrl = prompt("Enter Image URL:");
+                                if (imageUrl) {
+                                    this.quill.insertEmbed(range.index, 'image', imageUrl);
+                                    this.quill.format('align', 'center');
+                                }
+                            }
+                        }
+                    }
+                },
+                theme: 'snow',
+            });
+
+            document.getElementById('blogCreationForm').addEventListener('submit', function () {
+                document.getElementById('blogContent').value = JSON.stringify(quill.getContents());
+            });
+    </script>
+</body>
+</html>

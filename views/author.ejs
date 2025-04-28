@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>BLOG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Play:wght@400;700&family=Roboto:ital,wght@0,300;0,400;0,700;1,400&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+
+<body>
+    <main>
+
+        <header>
+            <div class="navbarContainer">
+                <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
+                <div class="navLinks">
+                    <ul class="navLinkList work-sans">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/blogs">Blog</a></li>
+                        <li><a href="/author">Profile</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!--<section id="authorDetialSection">
+            <div class="authorDetailsContainer">
+                <div class="authorDetails">
+                    <img src="./assets/images/contentImage2.png">
+                    <h3>Palash Acharya</h3>
+                </div>
+            </div>
+        </section>-->
+        <section id="authorDetialSection">
+            <div class="authorDetailsContainer">
+                <div class="authorCard">
+                    <div class="authorDetails">
+                        <img src="<%=posts[0].profile_icon_url%>>" alt="Author Profile Picture">
+                        <div class="authorInfo">
+                            <h3><%=posts[0].name%></h3>
+                            <!--<p>Web Developer & Tech Enthusiast</p>-->
+                        </div>
+                    </div>
+                    <p class="authorBio">
+                        <!--Meet Palash Acharya, a passionate web developer with a love for full-stack development and emerging
+                        technologies.
+                        Palash specializes in building scalable web applications and has experience working with modern
+                        frameworks and APIs.-->
+                        <%=posts[0].bio%>
+                    </p>
+                    <div class="authorSocials">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="blogDisplay">
+            <div class="blogDisplayContainer">
+                <h3>Latest Posts</h3>
+                <div class="blogGrid">
+                    <%for(let post of paginatedPosts){%>
+                        <div class="blogCard">
+                            <a href="blog/<%=post.blog_id%>">
+                            <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                            <div class="tags">
+                                    <%for (const tag of post.tags.split(',').map(x=>x.trim())){%>
+                                        <div class="tag">
+                                            <p>
+                                                <%=tag%>
+                                            </p>
+                                        </div>
+                                        <%}%>
+                            </div>
+                            <h3><%=post.title%></h3>
+                            <div class="blogDetails">
+                                <i class="far fa-user"></i>
+                                <p class="work-sans authorName"><%=post.name%></p>
+                                <p class="work-sans"><%=new Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></p>
+                            </div>
+                            <div class="cardActions">
+                                <a href="/modify/<%=post.blog_id%>"><i class="fas fa-edit" title="Edit Blog"></i></a>
+                                <a href="/delete/<%=post.blog_id%>" onclick="return confirmDelete('<%=post.title%>')"><i class="fas fa-trash-alt" title="Delete Blog"></i></a>
+                            </div>
+                            </a>
+                        </div>
+                    <%}%>
+                    <!--
+                    <div class="blogCard">
+                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                        <div class="tag">
+                            <p>Technology</p>
+                        </div>
+                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
+                        <div class="blogDetails">
+                            <i class="far fa-user"></i>
+                            <p class="work-sans authorName">Palash Acharya</p>
+                            <p class="work-sans">January 29 2025</p>
+                        </div>
+                    </div>
+                    <div class="blogCard">
+                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                        <div class="tag">
+                            <p>Technology</p>
+                        </div>
+                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
+                        <div class="blogDetails">
+                            <i class="far fa-user"></i>
+                            <p class="work-sans authorName">Palash Acharya</p>
+                            <p class="work-sans">January 29 2025</p>
+                        </div>
+                    </div>
+                    <div class="blogCard">
+                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                        <div class="tag">
+                            <p>Technology</p>
+                        </div>
+                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
+                        <div class="blogDetails">
+                            <i class="far fa-user"></i>
+                            <p class="work-sans authorName">Palash Acharya</p>
+                            <p class="work-sans">January 29 2025</p>
+                        </div>
+                    </div>
+                    <div class="blogCard">
+                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                        <div class="tag">
+                            <p>Technology</p>
+                        </div>
+                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
+                        <div class="blogDetails">
+                            <i class="far fa-user"></i>
+                            <p class="work-sans authorName">Palash Acharya</p>
+                            <p class="work-sans">January 29 2025</p>
+                        </div>
+                    </div>
+                    <div class="blogCard">
+                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+        
+                        <div class="tag">
+                            <p>Technology</p>
+                        </div>
+                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
+                        <div class="blogDetails">
+                            <i class="far fa-user"></i>
+                            <p class="work-sans authorName">Palash Acharya</p>
+                            <p class="work-sans">January 29 2025</p>
+                        </div>
+                    </div>-->
+                </div>
+                <div class="pagination">
+                    <% if (currentPage> 1) { %>
+                        <a href="/author?page=<%= currentPage - 1 %>" class="page-link">Previous</a>
+                        <% } %>
+                
+                            <% for (let i=1; i <=totalPages; i++) { %>
+                                <a href="/author?page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                                <% } %>
+                
+                                    <% if (currentPage < totalPages) { %>
+                                        <a href="/author?page=<%= currentPage + 1 %>" class="page-link">Next</a>
+                                        <% } %>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+
+    <footer>
+        <div class="footerContainer">
+            <ul class="footerList">
+                <li><i class="fa-regular fa-copyright"></i> 2025</li>
+                <li><a href="#">LinkedIn</a></li>
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">GitHub</a></li>
+                <li><a href="#">Email</a></li>
+            </ul>
+        </div>
+    </footer>
+    <script>
+        function confirmDelete(title) {
+            return confirm(`Are you sure you want to delete the blog titled "${title}"?`);
+        }
+    </script>
+</body>
+</html>

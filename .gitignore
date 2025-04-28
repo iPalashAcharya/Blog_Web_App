@@ -1,0 +1,45 @@
+# Ignore node modules (if Node.js project)
+node_modules/
+
+# Ignore environment variable files
+.env
+.env.local
+.env.production
+.env.development
+
+# Ignore build output (like React, Vue, Next.js, etc.)
+dist/
+build/
+.next/
+out/
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+logs/
+npm-debug.log*
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+
+# Ignore coverage reports
+coverage/
+
+# Ignore dependency directories
+bower_components/
+
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore GitHub workflows cache (if any)
+.github/
+
+# Ignore other common system files
+*.bak
+*.backup
+*.orig
