@@ -621,6 +621,18 @@ a {
     font-family: 'Work Sans', serif;
 }
 
+.nested-reply {
+    margin-left: 20px;
+    border-left: 2px solid #e6e6e6;
+    padding-left: 10px;
+}
+
+.replyingTo {
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
 .replyHeader {
     display: flex;
     align-items: center;

@@ -158,6 +158,8 @@
                             <form class="replyForm" method="post" action="/api/reply">
                                 <input type="hidden" name="comment_id" value="<%=comment.comment_id%>">
                                 <input type="hidden" name="blog_id" value="<%=post.blog_id%>">
+                                <input type="hidden" name="parent_reply_id" value="">
+                                <div class="replying-to-indicator" style="display:none;"></div>
                                 <textarea class="replyInput" name="reply_text" placeholder="Write a reply..." required></textarea>
                                 <div class="replyFormButtons">
                                     <button type="button" class="cancelReply" data-comment-id="<%=comment.comment_id%>">Cancel</button>
@@ -169,7 +171,12 @@
                     <div class="repliesContainer" id="replies-<%=comment.comment_id%>" style="display: none;">
                     <% if(comment.replies && comment.replies.length> 0) { %>
                         <% for(const reply of comment.replies) { %>
-                            <div class="replyBox">
+                            <div class="replyBox <%= reply.parent_reply_id ? 'nested-reply' : '' %>" data-reply-id="<%= reply.reply_id %>" <%= reply.parent_reply_id ? `data-parent-reply-id="${reply.parent_reply_id}" ` : '' %>>
+                                <% if(reply.parent_reply_id) { %>
+                                    <div class="replyingTo">
+                                        Replying to @<%= reply.replying_to %>
+                                    </div>
+                                <% } %>
                                 <div class="replyHeader">
                                     <img src="/images/contentImage2.png" alt="User" class="replyUserImg">
                                     <div class="userInfo">
@@ -202,9 +209,11 @@
                                             data-reply-id="<%=reply.reply_id%>"></i> <span class="reply_like_count">
                                             <%=reply.reply_likes%>
                                         </span></span>
+                                    <span class="replyToReplyButton" data-comment-id="<%=comment.comment_id%>" data-reply-id="<%=reply.reply_id%>"
+                                        data-username="<%=reply.replied_by%>">Reply</span>
                                 </div>
                             </div>
-                            <% } %>
+                        <% } %>
                     <% } else { %>
                             <div class="noReplies">No replies yet.</div>
                         <% } %>
@@ -229,6 +238,38 @@
     </footer>
 
     <script>
+        document.querySelectorAll('.replyToReplyButton').forEach(button => {
+            button.addEventListener('click', function () {
+                const commentId = this.getAttribute('data-comment-id');
+                const replyId = this.getAttribute('data-reply-id');
+                const username = this.getAttribute('data-username');
+
+                const replyForm = document.getElementById(`replyForm-${commentId}`);
+                replyForm.style.display = 'block';
+
+                const parentReplyField = replyForm.querySelector('input[name="parent_reply_id"]');
+                parentReplyField.value = replyId;
+
+                const indicator = replyForm.querySelector('.replying-to-indicator');
+                indicator.textContent = `Replying to ${username}`;
+                indicator.style.display = 'block';
+                const textarea = replyForm.querySelector('textarea');
+                textarea.focus();
+
+                const cancelButton = replyForm.querySelector('.cancelReply');
+                cancelButton.addEventListener('click', function () {
+                    parentReplyField.value = '';
+                    indicator.style.display = 'none';
+                    indicator.textContent = '';
+                });
+
+                const repliesContainer = document.getElementById(`replies-${commentId}`);
+                if (repliesContainer) {
+                    repliesContainer.style.display = 'block';
+                }
+            });
+        });
+
             document.addEventListener('DOMContentLoaded', function () {
                 if (window.editingReply) {
                     const commentId = window.editingReply.comment_id;
