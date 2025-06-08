@@ -31,7 +31,13 @@
                 <ul class="navLinkList work-sans">
                     <li><a href="/">Home</a></li>
                     <li><a href="/blogs">Blog</a></li>
-                    <li><a href="/author">Profile</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Profile <i class="fa-solid fa-circle-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/author">My Profile</a></li>
+                            <li><a href="#" id="logout-link">Logout</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -125,6 +131,7 @@
                             <div class="CommentName"><%=comment.commented_by%></div>
                             <div class="commentDate"><%=new Date(comment.commented_on).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></div>
                         </div>
+                        <%if(locals.user && user.name===comment.commented_by){%>
                         <div class="commentMenuWrapper">
                             <i class="fa-solid fa-ellipsis-vertical menuIcon" onclick="toggleMenu(this)"></i>
                             <div class="commentDropdown">
@@ -132,6 +139,7 @@
                                 <a href="/comment/delete/<%=post.blog_id%>/<%=comment.comment_id%>" onclick="return confirmDelete()"><div>Delete</div></a>
                             </div>
                         </div>
+                        <%}%>
                     </div>
                     <div class="commentContent">
                         <%=comment.comment_text%>
@@ -188,6 +196,7 @@
                                                 Date(reply.replied_on).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%>
                                         </div>
                                     </div>
+                                    <%if(locals.user && user.name===reply.replied_by){%>
                                     <div class="replyMenuWrapper">
                                         <i class="fa-solid fa-ellipsis-vertical menuIcon" onclick="toggleReplyMenu(this)"></i>
                                         <div class="replyDropdown">
@@ -200,6 +209,7 @@
                                             </a>
                                         </div>
                                     </div>
+                                    <%}%>
                                 </div>
                                 <div class="replyContent">
                                     <%=reply.reply_text%>
@@ -238,6 +248,31 @@
     </footer>
 
     <script>
+        document.getElementById('logout-link').addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            const confirmLogout = confirm("Are you sure you want to logout?");
+            if (!confirmLogout) return;
+
+            try {
+                const response = await fetch('/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    alert('Logged out successfully!');
+                    window.location.href = '/'; 
+                } else {
+                    const error = await response.text();
+                    alert('Logout failed: ' + error);
+                }
+            } catch (err) {
+                console.error('Logout error:', err);
+                alert('Something went wrong.');
+            }
+        });
+
         document.querySelectorAll('.replyToReplyButton').forEach(button => {
             button.addEventListener('click', function () {
                 const commentId = this.getAttribute('data-comment-id');

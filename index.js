@@ -26,6 +26,7 @@ app.use((err, req, res, next) => {
     }
     next();
 });
+app.set('trust proxy', true);
 
 async function getAllBlogs() {
     const client = await connectionPool.connect();
@@ -401,6 +402,8 @@ app.delete('/reply/:id', async (req, res) => {
 app.listen(port, () => {
     console.log(`API is running on http://localhost:${port}`);
 });
+
+module.exports = connectionPool;
 
 process.on('SIGINT', async () => {
     if (!isPoolClosed) {

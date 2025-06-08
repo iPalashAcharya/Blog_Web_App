@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            min-height: 600px;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .brand-section {
+            flex: 1;
+            background: linear-gradient(45deg, #2563eb, #1d4ed8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: white;
+            position: relative;
+        }
+
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2563eb;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .brand-tagline {
+            font-size: 18px;
+            opacity: 0.9;
+            text-align: center;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-tabs {
+            display: flex;
+            margin-bottom: 40px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #2563eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-button {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .form-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .form-divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .form-divider::before,
+        .form-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .form-divider span {
+            padding: 0 20px;
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .social-button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .social-button:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .forgot-password a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 400px;
+            }
+
+            .brand-section {
+                padding: 30px 20px;
+                min-height: 200px;
+            }
+
+            .form-section {
+                padding: 40px 30px;
+            }
+
+            .logo-text {
+                font-size: 24px;
+            }
+
+            .brand-tagline {
+                font-size: 16px;
+            }
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #374151;
+            margin: 0;
+        }
+
+        .checkbox-group a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="brand-section">
+            <div class="logo">
+                <div class="logo-icon">B</div>
+                <div class="logo-text">MetaBlog</div>
+            </div>
+            <div class="brand-tagline">
+                A Place for Collaboration and Fun :)
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-container">
+                <div class="form-tabs">
+                    <button class="tab-button active" onclick="switchTab('login')">Login</button>
+                    <button class="tab-button" onclick="switchTab('signup')">Sign Up</button>
+                </div>
+
+                <form class="form active" id="login-form">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" id="username" class="form-input" name="username" placeholder="Enter your Username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" class="form-input" name="password" placeholder="Enter your password"
+                            required>
+                    </div>
+
+                    <button type="submit" class="form-button">Sign In</button>
+
+
+                    <div class="form-divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <div class="social-buttons">
+                        <a href="#" class="social-button" onclick="alert('Google OAuth would be implemented here')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    fill="#4285F4" />
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853" />
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                    fill="#FBBC05" />
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335" />
+                            </svg>
+                            Google
+                        </a>
+                    </div>
+                </form>
+
+                <form class="form" id="signup-form">
+                    <div class="form-group">
+                        <label class="form-label" for="signup-username">Username</label>
+                        <input type="text" id="signup-username" class="form-input" name="username" placeholder="Enter your Username"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Bio</label>
+                        <input type="text" id="bio" class="form-input" name="bio" placeholder="Tell us about yourself" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-password">Password</label>
+                        <input type="password" id="signup-password" class="form-input" name="password" placeholder="Create a password"
+                            required>
+                        <div class="password-requirements">
+                            Password must be at least 8 characters with uppercase, lowercase, and number, The longer the password the better.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" class="form-input"
+                            placeholder="Confirm your password" required>
+                    </div>
+
+                    <button type="submit" class="form-button">Create Account</button>
+
+                    <div class="form-divider">
+                        <span>or sign up with</span>
+                    </div>
+
+                    <div class="social-buttons">
+                        <a href="#" class="social-button" onclick="alert('Google OAuth would be implemented here')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    fill="#4285F4" />
+                                <path
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    fill="#34A853" />
+                                <path
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                    fill="#FBBC05" />
+                                <path
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    fill="#EA4335" />
+                            </svg>
+                            Google
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Remove active class from all tabs and forms
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
+
+            // Add active class to selected tab and form
+            event.target.classList.add('active');
+            document.getElementById(tab + '-form').classList.add('active');
+        }
+
+        // Form submission handlers
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+             try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('Login successful!');
+                    // Redirect or do something with data
+                    console.log(data);
+                    window.location.href = '/'; 
+                } else {
+                    const error = await response.text();
+                    alert(`Login failed: ${error}`);
+                }
+            } catch (err) {
+                console.error('Error during login:', err);
+                alert('Something went wrong.');
+            }
+
+            alert(`Login attempt for: ${username}`);
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const bio = document.getElementById('bio').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+             try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password, bio })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('Registration successful!');
+                    // Redirect or do something with data
+                    console.log(data);
+                    window.location.href = '/';
+                } else {
+                    const error = await response.text();
+                    alert(`Login failed: ${error}`);
+                }
+            } catch (err) {
+                console.error('Error during login:', err);
+                alert('Something went wrong.');
+            }
+
+            alert(`Account creation attempt for: ${name}`);
+        });
+
+        // Password strength validation
+        document.getElementById('signup-password').addEventListener('input', function (e) {
+            const password = e.target.value;
+            const requirements = document.querySelector('.password-requirements');
+
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasMinLength = password.length >= 8;
+
+            if (hasUppercase && hasLowercase && hasNumber && hasMinLength) {
+                requirements.style.color = '#10b981';
+                requirements.textContent = '✓ Password meets all requirements';
+            } else {
+                requirements.style.color = '#64748b';
+                requirements.textContent = 'Password must be at least 8 characters with uppercase, lowercase, and number.';
+            }
+        });
+    </script>
+</body>
+
+</html>

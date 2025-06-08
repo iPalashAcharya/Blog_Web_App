@@ -55,6 +55,63 @@ a {
     margin-left: 40px;
 }
 
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    cursor: pointer;
+    color: #333;
+    text-decoration: none;
+}
+
+.dropdown-toggle:hover {
+    color: #007bff;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    min-width: 160px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    list-style: none;
+    padding: 8px 0;
+    margin: 4px 0 0 0;
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu li {
+    display: block;
+    margin: 0;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 12px 20px;
+    color: grey;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: white;
+    color: blue;
+}
+
 .heroContainer {
     padding-left: 140px;
     padding-right: 140px;
@@ -161,6 +218,10 @@ a {
 .blogGrid a {
     display: block;
     text-decoration: none;
+}
+
+.blogGrid h1 {
+    font-family: 'Work Sans', serif;
 }
 
 .blogCard {

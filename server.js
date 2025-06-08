@@ -1,15 +1,41 @@
 const express = require("express");
 const axios = require('axios');
+const session = require('express-session');
+const { passport } = require('./config/passport');
+const pgSession = require('connect-pg-simple')(session);
+const pool = require('./index');
+const authRoutes = require('./routes/auth');
 const { QuillDeltaToHtmlConverter } = require('quill-delta-to-html');
+const env = require('dotenv');
+const { requireAuth, requireAdmin, rateLimitAuth } = require('./config/passport');
+
+env.config();
 
 const app = express();
 const port = 3000;
 const API_URL = "http://localhost:4000";
 
+app.set('trust proxy', true);
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(session({
+    store: new pgSession({
+        pool: pool,
+        tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000
+    }
+}));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/auth', authRoutes);
 
 app.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -38,6 +64,10 @@ app.get('/', async (req, res) => {
         currentPage: page,
         totalPages
     });
+});
+
+app.get('/login', async (req, res) => {
+    res.render('login.ejs');
 });
 
 app.get('/blogs', async (req, res) => {
@@ -74,12 +104,14 @@ app.get('/blogs', async (req, res) => {
     }
 });
 
-app.get('/author', async (req, res) => {
+app.get('/author', requireAuth, async (req, res) => {
+    console.log(req.user);
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 6;
+        const userId = req.user.id;
 
-        const response = await axios.get(`${API_URL}/author/1`) //change dynamically when implementing authentication
+        const response = await axios.get(`${API_URL}/author/${userId}`);
         const posts = response.data;
 
         const totalPosts = posts.length;
@@ -92,14 +124,14 @@ app.get('/author', async (req, res) => {
         const startIndex = (page - 1) * limit;
         const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
 
-        res.render('author.ejs', { posts, paginatedPosts, currentPage: page, totalPages });
+        res.render('author.ejs', { posts, paginatedPosts, currentPage: page, totalPages, user: req.user });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
     }
 });
 
-app.get('/new', (req, res) => {
+app.get('/new', requireAuth, (req, res) => {
     res.render('create_blog.ejs');
 });
 
@@ -110,7 +142,7 @@ app.get('/blog/:id', async (req, res) => {
         const deltaOps = post.content.ops;
         const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
         post.contentHtml = converter.convert();
-        res.render('single_blog.ejs', { post });
+        res.render('single_blog.ejs', { post, user: req.user });
     } catch (error) {
         console.error("ERROR:", error.message);
         if (error.response) {
@@ -123,7 +155,7 @@ app.get('/blog/:id', async (req, res) => {
     }
 });
 
-app.get('/modify/:id', async (req, res) => {
+app.get('/modify/:id', requireAuth, async (req, res) => {
     try {
         const response = await axios.get(`${API_URL}/posts/${req.params.id}`);
         const post = response.data;
@@ -138,7 +170,7 @@ app.get('/modify/:id', async (req, res) => {
     }
 });
 
-app.get('/delete/:id', async (req, res) => {
+app.get('/delete/:id', requireAuth, async (req, res) => {
     try {
         await axios.delete(`${API_URL}/posts/${req.params.id}`);
         res.redirect('/author');
@@ -148,7 +180,7 @@ app.get('/delete/:id', async (req, res) => {
     }
 });
 
-app.get('/comment/delete/:blogId/:commentId', async (req, res) => {
+app.get('/comment/delete/:blogId/:commentId', requireAuth, async (req, res) => {
     try {
         await axios.delete(`${API_URL}/comments/${parseInt(req.params.commentId)}`);
         res.redirect(`/blog/${parseInt(req.params.blogId)}`);
@@ -164,7 +196,7 @@ app.get('/comment/delete/:blogId/:commentId', async (req, res) => {
     }
 });
 
-app.get('/reply/delete/:blogId/:replyId', async (req, res) => {
+app.get('/reply/delete/:blogId/:replyId', requireAuth, async (req, res) => {
     try {
         await axios.delete(`${API_URL}/reply/${parseInt(req.params.replyId)}`);
         res.redirect(`/blog/${parseInt(req.params.blogId)}`);
@@ -180,7 +212,7 @@ app.get('/reply/delete/:blogId/:replyId', async (req, res) => {
     }
 });
 
-app.post('/api/post', async (req, res) => {
+app.post('/api/post', requireAuth, async (req, res) => {
     try {
         const response = await axios.post(`${API_URL}/posts`, req.body);
         console.log(response.data);
@@ -190,7 +222,7 @@ app.post('/api/post', async (req, res) => {
     }
 });
 
-app.post('/api/edit/:id', async (req, res) => {
+app.post('/api/edit/:id', requireAuth, async (req, res) => {
     try {
         await axios.patch(`${API_URL}/posts/${req.params.id}`, req.body);
         res.redirect('/author');
@@ -199,7 +231,7 @@ app.post('/api/edit/:id', async (req, res) => {
     }
 });
 
-app.post('/api/comment', async (req, res) => {
+app.post('/api/comment', requireAuth, async (req, res) => {
     try {
         const response = await axios.post(`${API_URL}/comment`, req.body);
         console.log(response.data);
@@ -209,7 +241,7 @@ app.post('/api/comment', async (req, res) => {
     }
 });
 
-app.post('/api/reply', async (req, res) => {
+app.post('/api/reply', requireAuth, async (req, res) => {
     try {
         const response = await axios.post(`${API_URL}/reply`, req.body);
         res.redirect(`/blog/${req.body.blog_id}`);
@@ -270,7 +302,7 @@ app.get('/reply/modify/:blogId/:replyId', async (req, res) => {
     }
 });
 
-app.post('/api/comment/modify/:id', async (req, res) => {
+app.post('/api/comment/modify/:id', requireAuth, async (req, res) => {
     try {
         const blogId = req.body.blog_id;
         if (!blogId) {
@@ -292,7 +324,7 @@ app.post('/api/comment/modify/:id', async (req, res) => {
     }
 });
 
-app.post('/api/reply/modify/:id', async (req, res) => {
+app.post('/api/reply/modify/:id', requireAuth, async (req, res) => {
     try {
         const blogId = req.body.blog_id;
         if (!blogId) {
@@ -314,7 +346,7 @@ app.post('/api/reply/modify/:id', async (req, res) => {
     }
 });
 
-app.post('/api/like', async (req, res) => {
+app.post('/api/like', requireAuth, async (req, res) => {
     try {
         let endpoint = null;
         if (req.body.post_id) {

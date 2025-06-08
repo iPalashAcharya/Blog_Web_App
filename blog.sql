@@ -90,6 +90,21 @@ CREATE TABLE reply_like(
 	UNIQUE(user_id,reply_id)
 );
 
+CREATE TABLE "session" (
+  "sid" varchar NOT NULL COLLATE "default",
+  "sess" json NOT NULL,
+  "expire" timestamp(6) NOT NULL
+)
+WITH (OIDS=FALSE);
+
+ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid");
+
+CREATE INDEX "IDX_session_expire" ON "session" ("expire");
+
+
+ALTER TABLE users 
+ADD password TEXT;
+
 INSERT INTO reply(text,comment_id,user_id)
 VALUES('This is a reply',2,1);
 
@@ -372,3 +387,10 @@ INSERT INTO comment_like (user_id, comment_id) VALUES
             }
         ]
     },
+{
+  id: 1,
+  name: 'Palash Acharya',
+  profile_icon_url: '/images/default_profile.png',
+  bio: 'A tech enthusiast',
+  password: '$2b$10$j4CTfTW.pqc0kZtRB5c0wefqT1tVCETCaSXnxGCbk6U78R6WxZnbi'
+}

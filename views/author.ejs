@@ -25,7 +25,14 @@
                     <ul class="navLinkList work-sans">
                         <li><a href="/">Home</a></li>
                         <li><a href="/blogs">Blog</a></li>
-                        <li><a href="/author">Profile</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle">Profile <i class="fa-solid fa-circle-chevron-down"></i></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/author">My Profile</a></li>
+                                <li><a href="/settings">Settings</a></li>
+                                <li><a href="#" id="logout-link">Logout</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -43,9 +50,9 @@
             <div class="authorDetailsContainer">
                 <div class="authorCard">
                     <div class="authorDetails">
-                        <img src="<%=posts[0].profile_icon_url%>>" alt="Author Profile Picture">
+                        <img src="<%=user.profile_icon_url%>>" alt="Author Profile Picture">
                         <div class="authorInfo">
-                            <h3><%=posts[0].name%></h3>
+                            <h3><%=user.name%></h3>
                             <!--<p>Web Developer & Tech Enthusiast</p>-->
                         </div>
                     </div>
@@ -54,7 +61,7 @@
                         technologies.
                         Palash specializes in building scalable web applications and has experience working with modern
                         frameworks and APIs.-->
-                        <%=posts[0].bio%>
+                        <%=user.bio%>
                     </p>
                     <div class="authorSocials">
                         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -70,6 +77,7 @@
             <div class="blogDisplayContainer">
                 <h3>Latest Posts</h3>
                 <div class="blogGrid">
+                    <%if(locals.paginatedPosts){%>
                     <%for(let post of paginatedPosts){%>
                         <div class="blogCard">
                             <a href="blog/<%=post.blog_id%>">
@@ -97,6 +105,8 @@
                             </a>
                         </div>
                     <%}%>
+                    <%}%>
+                    <h1>No Posts yet</h1>
                     <!--
                     <div class="blogCard">
                         <div class="blogCardImage"><img src="../images/cardImage.png"></div>
@@ -197,6 +207,31 @@
         </div>
     </footer>
     <script>
+        document.getElementById('logout-link').addEventListener('click', async function (e) {
+                e.preventDefault();
+
+                const confirmLogout = confirm("Are you sure you want to logout?");
+                if (!confirmLogout) return;
+
+                try {
+                    const response = await fetch('/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        alert('Logged out successfully!');
+                        window.location.href = '/';
+                    } else {
+                        const error = await response.text();
+                        alert('Logout failed: ' + error);
+                    }
+                } catch (err) {
+                    console.error('Logout error:', err);
+                    alert('Something went wrong.');
+                }
+            });
+            
         function confirmDelete(title) {
             return confirm(`Are you sure you want to delete the blog titled "${title}"?`);
         }
