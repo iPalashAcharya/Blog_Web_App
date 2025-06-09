@@ -107,8 +107,27 @@ app.get('/author/:id', async (req, res) => {
     }
 });
 
+app.post('/check-likes', async (req, res) => {
+    const client = await connectionPool.connect();
+    const userId = req.body.id;
+    if (!userId) {
+        return res.status(400).json({ error: "User ID missing" });
+    }
+    try {
+        const result = await client.query("SELECT blog_id FROM blog_like WHERE user_id=$1", [userId]);
+        const commentLikes = await client.query("SELECT comment_id from comment_like WHERE user_id=$1", [userId]);
+        const replyLikes = await client.query("SELECT reply_id FROM reply_like WHERE user_id =$1", [userId]);
+        res.json({ blogLikes: result.rows.map(row => row.blog_id), commentLikes: commentLikes.rows.map(row => row.comment_id), replyLikes: replyLikes.rows.map(row => row.reply_id), });
+    } catch (err) {
+        console.error("Error executing query", err.stack);
+        res.status(500).json({ error: "Internal server error" });
+    } finally {
+        client.release();
+    }
+});
+
 app.post('/posts', async (req, res) => {
-    const author_name = 'Palash Acharya';
+    const author_name = req.body.username;
     const tags = req.body.blogTags.split(',').map(tag => tag.trim());
     let is_draft = req.body.createButton === 'create' ? false : true;
     const client = await connectionPool.connect();
@@ -145,7 +164,7 @@ app.post('/posts', async (req, res) => {
 });
 
 app.post('/reply', async (req, res) => {
-    const authorName = 'Palash Acharya'; //make this dynamic
+    const authorName = req.body.username;
     const client = await connectionPool.connect();
     const replyText = req.body.reply_text;
     const commentId = req.body.comment_id;
@@ -174,7 +193,7 @@ app.post('/reply', async (req, res) => {
 });
 
 app.post('/comment', async (req, res) => {
-    const author_name = 'Palash Acharya'; //make this dynamic
+    const author_name = req.body.username;
     const client = await connectionPool.connect();
     const comment_text = req.body.commentText;
     const blog_id = req.body.blog_id;
@@ -196,7 +215,7 @@ app.post('/comment', async (req, res) => {
 });
 
 app.post('/reply_like', async (req, res) => {
-    const userId = 1; //make this dynamic
+    const userId = req.body.user.id; //make this dynamic
     const replyId = req.body.reply_id;
     const client = await connectionPool.connect();
     try {
@@ -224,7 +243,7 @@ app.post('/reply_like', async (req, res) => {
 });
 
 app.post('/blog_like', async (req, res) => {
-    const user_id = 1; //make this dynamic
+    const user_id = req.body.user.id; //make this dynamic
     const post_id = req.body.post_id;
     const client = await connectionPool.connect();
     try {
@@ -245,7 +264,7 @@ app.post('/blog_like', async (req, res) => {
 });
 
 app.post('/comment_like', async (req, res) => {
-    const user_id = 1;
+    const user_id = req.body.user.id;
     const comment_id = req.body.comment_id;
     const client = await connectionPool.connect();
     try {

@@ -105,7 +105,6 @@ app.get('/blogs', async (req, res) => {
 });
 
 app.get('/author', requireAuth, async (req, res) => {
-    console.log(req.user);
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 6;
@@ -142,6 +141,12 @@ app.get('/blog/:id', async (req, res) => {
         const deltaOps = post.content.ops;
         const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
         post.contentHtml = converter.convert();
+        const response2 = await axios.post(`${API_URL}/check-likes`, { id: req.user.id }, { headers: { 'Content-Type': 'application/json' }, timeout: 3000 },);
+        const likedBlogs = response2.data.blogLikes;
+        const blogLiked = likedBlogs.includes(parseInt(req.params.id));
+        req.user.blogLiked = blogLiked;
+        req.user.commentLiked = response2.data.commentLikes;
+        req.user.replyLiked = response2.data.replyLikes;
         res.render('single_blog.ejs', { post, user: req.user });
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -213,6 +218,7 @@ app.get('/reply/delete/:blogId/:replyId', requireAuth, async (req, res) => {
 });
 
 app.post('/api/post', requireAuth, async (req, res) => {
+    req.body.username = req.user.name;
     try {
         const response = await axios.post(`${API_URL}/posts`, req.body);
         console.log(response.data);
@@ -232,6 +238,7 @@ app.post('/api/edit/:id', requireAuth, async (req, res) => {
 });
 
 app.post('/api/comment', requireAuth, async (req, res) => {
+    req.body.username = req.user.name;
     try {
         const response = await axios.post(`${API_URL}/comment`, req.body);
         console.log(response.data);
@@ -242,6 +249,7 @@ app.post('/api/comment', requireAuth, async (req, res) => {
 });
 
 app.post('/api/reply', requireAuth, async (req, res) => {
+    req.body.username = req.user.name;
     try {
         const response = await axios.post(`${API_URL}/reply`, req.body);
         res.redirect(`/blog/${req.body.blog_id}`);
@@ -347,6 +355,7 @@ app.post('/api/reply/modify/:id', requireAuth, async (req, res) => {
 });
 
 app.post('/api/like', requireAuth, async (req, res) => {
+    req.body.user = req.user;
     try {
         let endpoint = null;
         if (req.body.post_id) {

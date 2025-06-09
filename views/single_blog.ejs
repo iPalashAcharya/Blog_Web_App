@@ -59,7 +59,7 @@
                     <i class="far fa-user"></i>
                     <p class="work-sans authorName"><%=post.author_name%></p>
                     <p class="work-sans"><%=new Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></p>
-                    <i class="<%= post.blog_like_count>0 ? 'fa-solid' : 'fa-regular' %> fa-heart like blogLike" data-post-id="<%=post.blog_id%>"></i> <p><%=post.blog_likes_count%></p> <!--come back to this once session is implemented-->
+                    <i class="<%= user.blogLiked ? 'fa-solid' : 'fa-regular' %> fa-heart like blogLike" data-post-id="<%=post.blog_id%>"></i> <p><%=post.blog_likes_count%></p> <!--come back to this once session is implemented-->
                 </div>
             </div>
 
@@ -145,7 +145,7 @@
                         <%=comment.comment_text%>
                     </div>
                     <div class="commentActions">
-                        <span><i class="<%= comment.comment_likes>0 ? 'fa-solid' : 'fa-regular' %> fa-heart like commentLike" data-comment-id="<%=comment.comment_id%>"></i> <span class="like_count"><%=comment.comment_likes%></span></span><!--come back to this once session is implemented-->
+                        <span><i class="<%= user.commentLiked.includes(comment.comment_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like commentLike" data-comment-id="<%=comment.comment_id%>"></i> <span class="like_count"><%=comment.comment_likes%></span></span><!--come back to this once session is implemented-->
                         <span class="replyToggle" data-comment-id="<%=comment.comment_id%>"><i class="fa-regular fa-comment"></i> <span class="replies-count">
                             <%= comment.replies && comment.replies.length ? comment.replies.length : 0 %> replies
                         </span></span>
@@ -215,7 +215,7 @@
                                     <%=reply.reply_text%>
                                 </div>
                                 <div class="replyActions">
-                                    <span><i class="<%= reply.reply_likes>0 ? 'fa-solid' : 'fa-regular' %> fa-heart like replyLike"
+                                    <span><i class="<%= user.replyLiked.includes(reply.reply_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like replyLike"
                                             data-reply-id="<%=reply.reply_id%>"></i> <span class="reply_like_count">
                                             <%=reply.reply_likes%>
                                         </span></span>
