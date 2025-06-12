@@ -38,29 +38,19 @@
             </div>
         </header>
 
-        <!--<section id="authorDetialSection">
-            <div class="authorDetailsContainer">
-                <div class="authorDetails">
-                    <img src="./assets/images/contentImage2.png">
-                    <h3>Palash Acharya</h3>
-                </div>
-            </div>
-        </section>-->
         <section id="authorDetialSection">
             <div class="authorDetailsContainer">
                 <div class="authorCard">
                     <div class="authorDetails">
-                        <img src="<%=user.profile_icon_url%>>" alt="Author Profile Picture">
+                        <div class="authorImage">
+                            <button class="profileUpload" onclick="handleProfile('<%=user.id%>')">Upload Profile Picture Url</button>
+                            <img src="<%=user.profile_icon_url%>" alt="Author Profile Picture">
+                        </div>
                         <div class="authorInfo">
                             <h3><%=user.name%></h3>
-                            <!--<p>Web Developer & Tech Enthusiast</p>-->
                         </div>
                     </div>
                     <p class="authorBio">
-                        <!--Meet Palash Acharya, a passionate web developer with a love for full-stack development and emerging
-                        technologies.
-                        Palash specializes in building scalable web applications and has experience working with modern
-                        frameworks and APIs.-->
                         <%=user.bio%>
                     </p>
                     <div class="authorSocials">
@@ -73,16 +63,20 @@
             </div>
         </section>
 
+        <div class="draftTabs">
+            <button class="tab-button" onclick="switchTab(event,'postGrid')">BlogPosts</button>
+            <button class="tab-button disable" onclick="switchTab(event,'draftGrid')">Drafts</button>
+        </div>
+
         <section id="blogDisplay">
             <div class="blogDisplayContainer">
                 <h3>Latest Posts</h3>
-                <div class="blogGrid">
+                <div id="postGrid" class="blogGrid">
                     <%if(locals.paginatedPosts){%>
                     <%for(let post of paginatedPosts){%>
                         <div class="blogCard">
                             <a href="blog/<%=post.blog_id%>">
-                            <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
+                            <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
                             <div class="tags">
                                     <%for (const tag of post.tags.split(',').map(x=>x.trim())){%>
                                         <div class="tag">
@@ -108,73 +102,50 @@
                     <%}else{%>
                     <h1>No Posts yet</h1>
                     <%}%>
-                    <!--
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>-->
                 </div>
+
+                <div id="draftGrid" class="blogGrid disable">
+                    <%if(locals.paginatedPosts && paginatedPosts.is_draft){%>
+                        <%for(let post of paginatedPosts){%>
+                            <div class="blogCard">
+                                <a href="blog/<%=post.blog_id%>">
+                                    <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
+                
+                                    <div class="tags">
+                                        <%for (const tag of post.tags.split(',').map(x=>x.trim())){%>
+                                            <div class="tag">
+                                                <p>
+                                                    <%=tag%>
+                                                </p>
+                                            </div>
+                                            <%}%>
+                                    </div>
+                                    <h3>
+                                        <%=post.title%>
+                                    </h3>
+                                    <div class="blogDetails">
+                                        <i class="far fa-user"></i>
+                                        <p class="work-sans authorName">
+                                            <%=post.name%>
+                                        </p>
+                                        <p class="work-sans">
+                                            <%=new
+                                                Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%>
+                                        </p>
+                                    </div>
+                                    <div class="cardActions">
+                                        <a href="/modify/<%=post.blog_id%>"><i class="fas fa-edit" title="Edit Blog"></i></a>
+                                        <a href="/delete/<%=post.blog_id%>" onclick="return confirmDelete('<%=post.title%>')"><i
+                                                class="fas fa-trash-alt" title="Delete Blog"></i></a>
+                                    </div>
+                                </a>
+                            </div>
+                            <%}%>
+                                <%}else{%>
+                                    <h1>No Drafts yet</h1>
+                                    <%}%>
+                </div>
+
                 <div class="pagination">
                     <% if (currentPage> 1) { %>
                         <a href="/author?page=<%= currentPage - 1 %>" class="page-link">Previous</a>
@@ -208,6 +179,49 @@
         </div>
     </footer>
     <script>
+        async function handleProfile(Id){
+            const userId = parseInt(Id);
+            const profile_icon_url = prompt("Please enter your profile icon Url:");
+            if (!profile_icon_url) {
+                alert("No URL provided.");
+                return;
+            }
+            if (!userId) {
+                console.error("❌ User ID is undefined!", userId);
+                alert("User not logged in or missing.");
+                return;
+            }
+            try{
+                const response = await fetch('/api/profile', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers:{
+                        'Content-Type':'application/json',
+                    },
+                    body:JSON.stringify({userId:userId,profile_icon_url:profile_icon_url})
+                });
+                const data = await response.json();
+                console.log(data);
+                if(response.ok){
+                    alert("Profile Updated Successfully");
+                    window.location.reload();
+                }
+                else{
+                    alert("Update failed.");
+                }
+                }catch(err){
+                    console.error("Network Error", err);
+                }
+            }
+
+        function switchTab(event,grid){
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.add('disable'));
+            document.querySelectorAll('.blogGrid').forEach(grid=>grid.classList.add('disable'));
+
+            event.target.classList.remove('disable');
+            document.getElementById(grid).classList.remove('disable');
+        }
+
         document.getElementById('logout-link').addEventListener('click', async function (e) {
                 e.preventDefault();
 

@@ -44,21 +44,21 @@ app.get('/', async (req, res) => {
     const response = await axios.get(`${API_URL}/posts`);
     const posts = response.data;
 
-    const featuredPost = posts[posts.length - 1];
-    const remainingPosts = posts.slice(0, posts.length - 1);
+    const publishedPosts = posts.filter(post => !post.is_draft);
+    const sortedPosts = [...publishedPosts].sort((a, b) =>
+        new Date(b.last_updated) - new Date(a.last_updated)
+    );
+
+    const featuredPost = sortedPosts[0];
+    const remainingPosts = sortedPosts.filter(post => post.blog_id !== featuredPost.blog_id);
 
     const totalPosts = remainingPosts.length;
     const totalPages = Math.ceil(totalPosts / limit);
 
-    const sortedPosts = [...remainingPosts].sort((a, b) =>
-        new Date(b.last_updated) - new Date(a.last_updated)
-    );
-
     const startIndex = (page - 1) * limit;
-    const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
+    const paginatedPosts = remainingPosts.slice(startIndex, startIndex + limit);
 
     res.render('index.ejs', {
-        posts,
         featuredPost,
         paginatedPosts,
         currentPage: page,
@@ -72,7 +72,7 @@ app.get('/login', async (req, res) => {
 
 app.get('/blogs', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
+        /*const page = parseInt(req.query.page) || 1;
         const limit = 6;
 
         const response = await axios.get(`${API_URL}/posts`);
@@ -89,10 +89,28 @@ app.get('/blogs', async (req, res) => {
         );
 
         const startIndex = (page - 1) * limit;
-        const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
+        const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);*/
+        const page = parseInt(req.query.page) || 1;
+        const limit = 6;
+
+        const response = await axios.get(`${API_URL}/posts`);
+        const posts = response.data;
+
+        const publishedPosts = posts.filter(post => !post.is_draft);
+        const sortedPosts = [...publishedPosts].sort((a, b) =>
+            new Date(b.last_updated) - new Date(a.last_updated)
+        );
+
+        const featuredPost = sortedPosts[0];
+        const remainingPosts = sortedPosts.filter(post => post.blog_id !== featuredPost.blog_id);
+
+        const totalPosts = remainingPosts.length;
+        const totalPages = Math.ceil(totalPosts / limit);
+
+        const startIndex = (page - 1) * limit;
+        const paginatedPosts = remainingPosts.slice(startIndex, startIndex + limit);
 
         res.render('blog_listing.ejs', {
-            posts,
             featuredPost,
             paginatedPosts,
             currentPage: page,
@@ -122,6 +140,7 @@ app.get('/author', requireAuth, async (req, res) => {
 
         const startIndex = (page - 1) * limit;
         const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
+        console.log(req.user);
 
         res.render('author.ejs', { posts, paginatedPosts, currentPage: page, totalPages, user: req.user });
     } catch (error) {
@@ -205,6 +224,22 @@ app.get('/reply/delete/:blogId/:replyId', requireAuth, async (req, res) => {
     try {
         await axios.delete(`${API_URL}/reply/${parseInt(req.params.replyId)}`);
         res.redirect(`/blog/${parseInt(req.params.blogId)}`);
+    } catch (error) {
+        console.error("ERROR:", error.message);
+        if (error.response) {
+            console.error("RESPONSE DATA:", error.response.data);
+            console.error("STATUS:", error.response.status);
+        } else {
+            console.error("STACK:", error.stack);
+        }
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+app.post('/api/profile', requireAuth, async (req, res) => {
+    try {
+        const result = await axios.post(`${API_URL}/profile`, req.body);
+        return res.status(result.status).json(result.data);
     } catch (error) {
         console.error("ERROR:", error.message);
         if (error.response) {

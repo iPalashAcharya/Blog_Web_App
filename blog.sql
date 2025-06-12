@@ -394,3 +394,5 @@ INSERT INTO comment_like (user_id, comment_id) VALUES
   bio: 'A tech enthusiast',
   password: '$2b$10$j4CTfTW.pqc0kZtRB5c0wefqT1tVCETCaSXnxGCbk6U78R6WxZnbi'
 }
+
+"../images/cardImage.png"

@@ -126,7 +126,7 @@
                 <%for (const comment of post.comments){%>
                 <div class="commentBox">
                     <div class="commentHeader">
-                        <img src="/images/contentImage2.png" alt="User">
+                        <img src="<%=comment.commented_by_profile%>" alt="User">
                         <div class="userInfo">
                             <div class="CommentName"><%=comment.commented_by%></div>
                             <div class="commentDate"><%=new Date(comment.commented_on).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></div>
@@ -186,7 +186,7 @@
                                     </div>
                                 <% } %>
                                 <div class="replyHeader">
-                                    <img src="/images/contentImage2.png" alt="User" class="replyUserImg">
+                                    <img src="<%=reply.replied_by_profile%>" alt="User" class="replyUserImg">
                                     <div class="userInfo">
                                         <div class="replyName">
                                             <%=reply.replied_by%>

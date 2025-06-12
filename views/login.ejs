@@ -436,8 +436,8 @@
             document.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
 
             // Add active class to selected tab and form
-            event.target.classList.add('active');
-            document.getElementById(tab + '-form').classList.add('active');
+            event.target.classList.add('active'); //adding active class to the tab button
+            document.getElementById(tab + '-form').classList.add('active'); //adding active class to the selected form
         }
 
         // Form submission handlers

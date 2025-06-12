@@ -54,7 +54,7 @@
             <div class="listingHero">
                 <a href="blog/<%=featuredPost.blog_id%>">
                 <div class="listingHeroImage">
-                    <img src="../images/heroImage.png">
+                    <img src="<%=featuredPost.banner_image_url%>">
                     <div class="listingHeroDiv">
                         <div class="tags">
                             <%for (const tag of featuredPost.tags.split(',').map(x=>x.trim())){%>
@@ -161,7 +161,7 @@
                     <%for(let post of paginatedPosts){%>
                         <a href='blog/<%=post.blog_id%>'>
                             <div class="blogCard">
-                                <div class="blogCardImage"><img src="../images/cardImage.png"></div>
+                                <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
                     
                                 <!--<div class="tag">
                                             <p>Technology</p>
