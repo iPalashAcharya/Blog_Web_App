@@ -904,8 +904,9 @@ a {
     background: #bbb;
 }
 
-.blogGrid.disable {
-    display: none;
+
+.hidden {
+    display: none !important;
 }
 
 .draftTabs {
@@ -913,12 +914,6 @@ a {
     margin-bottom: 48px;
     padding-left: 140px;
     padding-right: 140px;
-}
-
-.tab-button.disable {
-    background: none;
-    color: #64748b;
-    box-shadow: none;
 }
 
 .tab-button {
@@ -933,6 +928,12 @@ a {
     transition: all 0.3s ease;
     color: #2563eb;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button.inactive {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    box-shadow: none;
 }
 
 .blogCreationContainer {

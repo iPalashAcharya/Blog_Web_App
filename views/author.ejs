@@ -64,14 +64,14 @@
         </section>
 
         <div class="draftTabs">
-            <button class="tab-button" onclick="switchTab(event,'postGrid')">BlogPosts</button>
-            <button class="tab-button disable" onclick="switchTab(event,'draftGrid')">Drafts</button>
+            <button class="tab-button <%= activeType === 'post' ? '' : 'inactive' %>" onclick="switchTab(event,'postGrid')">BlogPosts</button>
+            <button class="tab-button <%= activeType === 'draft' ? '' : 'inactive' %>" onclick="switchTab(event,'draftGrid')">Drafts</button>
         </div>
 
         <section id="blogDisplay">
             <div class="blogDisplayContainer">
                 <h3>Latest Posts</h3>
-                <div id="postGrid" class="blogGrid">
+                <div id="postGrid" class="blogGrid <%= activeType === 'post' ? '' : 'hidden' %>">
                     <%if(locals.paginatedPosts){%>
                     <%for(let post of paginatedPosts){%>
                         <div class="blogCard">
@@ -104,9 +104,9 @@
                     <%}%>
                 </div>
 
-                <div id="draftGrid" class="blogGrid disable">
-                    <%if(locals.paginatedPosts && paginatedPosts.is_draft){%>
-                        <%for(let post of paginatedPosts){%>
+                <div id="draftGrid" class="blogGrid <%= activeType === 'draft' ? '' : 'hidden' %>">
+                    <%if(paginatedDraftPosts && paginatedDraftPosts.length>0){%>
+                        <%for(let post of paginatedDraftPosts){%>
                             <div class="blogCard">
                                 <a href="blog/<%=post.blog_id%>">
                                     <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
@@ -146,26 +146,40 @@
                                     <%}%>
                 </div>
 
-                <div class="pagination">
+                <div id = "postPagination" class="pagination <%= activeType === 'post' ? '' : 'hidden' %>">
                     <% if (currentPage> 1) { %>
-                        <a href="/author?page=<%= currentPage - 1 %>" class="page-link">Previous</a>
+                        <a href="/author?type=post&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
                         <% } %>
                 
-                            <% for (let i=1; i <=totalPages; i++) { %>
-                                <a href="/author?page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                            <% for (let i=1; i <=totalPostPages; i++) { %>
+                                <a href="/author?type=post&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                                     <%= i %>
                                 </a>
                                 <% } %>
                 
-                                    <% if (currentPage < totalPages) { %>
-                                        <a href="/author?page=<%= currentPage + 1 %>" class="page-link">Next</a>
+                                    <% if (currentPage < totalPostPages) { %>
+                                        <a href="/author?type=post&page=<%= currentPage + 1 %>" class="page-link">Next</a>
+                                        <% } %>
+                </div>
+
+                <div id="draftPagination" class="pagination <%= activeType === 'draft' ? '' : 'hidden' %>">
+                    <% if (currentPage> 1) { %>
+                        <a href="/author?type=draft&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
+                        <% } %>
+                
+                            <% for (let i=1; i <=totalDraftPages; i++) { %>
+                                <a href="/author?type=draft&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                                <% } %>
+                
+                                    <% if (currentPage < totalDraftPages) { %>
+                                        <a href="/author?type=draft&page=<%= currentPage + 1 %>" class="page-link">Next</a>
                                         <% } %>
                 </div>
             </div>
         </section>
     </main>
-
-
 
     <footer>
         <div class="footerContainer">
@@ -215,11 +229,18 @@
             }
 
         function switchTab(event,grid){
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.add('disable'));
-            document.querySelectorAll('.blogGrid').forEach(grid=>grid.classList.add('disable'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.add('inactive'));
+            event.target.classList.remove('inactive');
 
-            event.target.classList.remove('disable');
-            document.getElementById(grid).classList.remove('disable');
+            document.querySelectorAll('.blogGrid').forEach(grid => grid.classList.add('hidden'));
+            document.querySelectorAll('.pagination').forEach(p => p.classList.add('hidden'));
+
+            document.getElementById(grid).classList.remove('hidden');
+            if (grid === 'draftGrid') {
+                document.getElementById('draftPagination').classList.remove('hidden');
+            } else {
+                document.getElementById('postPagination').classList.remove('hidden');
+            }
         }
 
         document.getElementById('logout-link').addEventListener('click', async function (e) {

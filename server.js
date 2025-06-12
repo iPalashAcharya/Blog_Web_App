@@ -124,6 +124,7 @@ app.get('/blogs', async (req, res) => {
 
 app.get('/author', requireAuth, async (req, res) => {
     try {
+        const type = req.query.type || 'post';
         const page = parseInt(req.query.page) || 1;
         const limit = 6;
         const userId = req.user.id;
@@ -131,18 +132,25 @@ app.get('/author', requireAuth, async (req, res) => {
         const response = await axios.get(`${API_URL}/author/${userId}`);
         const posts = response.data;
 
-        const totalPosts = posts.length;
-        const totalPages = Math.ceil(totalPosts / limit);
+        const draftPosts = posts.filter(blog => blog.is_draft === true);
+        const publishedPosts = posts.filter(blog => blog.is_draft === false);
 
-        const sortedPosts = [...posts].sort((a, b) =>
+        const totalDraftPages = Math.ceil(draftPosts.length / limit);
+        const totalPostPages = Math.ceil(publishedPosts.length / limit);
+
+        const sortedDraftPosts = [...draftPosts].sort((a, b) =>
+            new Date(b.last_updated) - new Date(a.last_updated)
+        );
+        const sortedPublishedPosts = [...publishedPosts].sort((a, b) =>
             new Date(b.last_updated) - new Date(a.last_updated)
         );
 
         const startIndex = (page - 1) * limit;
-        const paginatedPosts = sortedPosts.slice(startIndex, startIndex + limit);
-        console.log(req.user);
 
-        res.render('author.ejs', { posts, paginatedPosts, currentPage: page, totalPages, user: req.user });
+        const paginatedPublishedPosts = sortedPublishedPosts.slice(startIndex, startIndex + limit);
+        const paginatedDraftPosts = sortedDraftPosts.slice(startIndex, startIndex + limit);
+
+        res.render('author.ejs', { paginatedPosts: paginatedPublishedPosts, currentPage: page, totalPostPages, user: req.user, totalDraftPages, paginatedDraftPosts, activeType: type });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
