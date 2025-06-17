@@ -28,9 +28,12 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle">Profile <i class="fa-solid fa-circle-chevron-down"></i></a>
                             <ul class="dropdown-menu">
-                                <li><a href="/author">My Profile</a></li>
-                                <li><a href="/settings">Settings</a></li>
-                                <li><a href="#" id="logout-link">Logout</a></li>
+                                <%if(loggedInUser){%>
+                                    <li><a href="/author/<%=loggedInUser?.id%>">My Profile</a></li>
+                                    <li><a href="#" id="logout-link">Logout</a></li>
+                                <%}else{%>
+                                    <li><a href="/login">Login</a></li>
+                                <%}%>
                             </ul>
                         </li>
                     </ul>
@@ -43,15 +46,35 @@
                 <div class="authorCard">
                     <div class="authorDetails">
                         <div class="authorImage">
-                            <button class="profileUpload" onclick="handleProfile('<%=user.id%>')">Upload Profile Picture Url</button>
-                            <img src="<%=user.profile_icon_url%>" alt="Author Profile Picture">
+                            <%if(publicUser.id===loggedInUser.id){%>
+                            <button class="profileUpload" onclick="handleProfile('<%=loggedInUser.id%>')">Upload Profile Picture Url</button>
+                            <%}%>
+                            <%if(publicUser.id===loggedInUser.id){%>
+                            <img src="<%=loggedInUser.profile_icon_url%>" alt="Author Profile Picture">
+                            <%}else{%>
+                            <img src="<%=publicUser.profile_icon_url%>" alt="Author Profile Picture">
+                            <%}%>
                         </div>
                         <div class="authorInfo">
-                            <h3><%=user.name%></h3>
+                            <%if(publicUser.id===loggedInUser.id){%>
+                            <h3><%=loggedInUser.name%></h3>
+                            <%}else{%>
+                            <h3>
+                                <%=publicUser.name%>
+                            </h3>
+                            <%}%>
                         </div>
                     </div>
                     <p class="authorBio">
-                        <%=user.bio%>
+                        <%if(loggedInUser.id===publicUser.id){%>
+                        <%if(loggedInUser.bio){%>
+                        <%=loggedInUser.bio%> <button class = "updateBio" onclick="addBio('<%=loggedInUser.id%>')"><i class="fa-solid fa-pen"></i></button>
+                        <%}else{%>
+                            <button onclick="addBio('<%=loggedInUser.id%>')">Add Bio</button>
+                        <%}%>
+                        <%}else{%>
+                        <%=publicUser.bio%>
+                        <%}%>
                     </p>
                     <div class="authorSocials">
                         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -63,11 +86,13 @@
             </div>
         </section>
 
+
+        <%if(loggedInUser.id===publicUser.id){%>
         <div class="draftTabs">
             <button class="tab-button <%= activeType === 'post' ? '' : 'inactive' %>" onclick="switchTab(event,'postGrid')">BlogPosts</button>
             <button class="tab-button <%= activeType === 'draft' ? '' : 'inactive' %>" onclick="switchTab(event,'draftGrid')">Drafts</button>
         </div>
-
+        <%}%>
         <section id="blogDisplay">
             <div class="blogDisplayContainer">
                 <h3>Latest Posts</h3>
@@ -92,10 +117,12 @@
                                 <p class="work-sans authorName"><%=post.name%></p>
                                 <p class="work-sans"><%=new Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></p>
                             </div>
+                            <%if(loggedInUser.id===post.author_id){%>
                             <div class="cardActions">
                                 <a href="/modify/<%=post.blog_id%>"><i class="fas fa-edit" title="Edit Blog"></i></a>
                                 <a href="/delete/<%=post.blog_id%>" onclick="return confirmDelete('<%=post.title%>')"><i class="fas fa-trash-alt" title="Delete Blog"></i></a>
                             </div>
+                            <%}%>
                             </a>
                         </div>
                     <%}%>
@@ -148,33 +175,33 @@
 
                 <div id = "postPagination" class="pagination <%= activeType === 'post' ? '' : 'hidden' %>">
                     <% if (currentPage> 1) { %>
-                        <a href="/author?type=post&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
+                        <a href="/author/<%=publicUser.id%>?type=post&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
                         <% } %>
                 
                             <% for (let i=1; i <=totalPostPages; i++) { %>
-                                <a href="/author?type=post&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                                <a href="/author/<%publicUser.id%>?type=post&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                                     <%= i %>
                                 </a>
                                 <% } %>
                 
                                     <% if (currentPage < totalPostPages) { %>
-                                        <a href="/author?type=post&page=<%= currentPage + 1 %>" class="page-link">Next</a>
+                                        <a href="/author/<%=publicUser.id%>?type=post&page=<%= currentPage + 1 %>" class="page-link">Next</a>
                                         <% } %>
                 </div>
 
                 <div id="draftPagination" class="pagination <%= activeType === 'draft' ? '' : 'hidden' %>">
                     <% if (currentPage> 1) { %>
-                        <a href="/author?type=draft&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
+                        <a href="/author/<%=publicUser.id%>?type=draft&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
                         <% } %>
                 
                             <% for (let i=1; i <=totalDraftPages; i++) { %>
-                                <a href="/author?type=draft&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
+                                <a href="/author/<%=publicUser.id%>?type=draft&page=<%= i %>" class="page-link <%= i === currentPage ? 'active' : '' %>">
                                     <%= i %>
                                 </a>
                                 <% } %>
                 
                                     <% if (currentPage < totalDraftPages) { %>
-                                        <a href="/author?type=draft&page=<%= currentPage + 1 %>" class="page-link">Next</a>
+                                        <a href="/author/<%=publicUser.id%>?type=draft&page=<%= currentPage + 1 %>" class="page-link">Next</a>
                                         <% } %>
                 </div>
             </div>
@@ -224,6 +251,41 @@
                     alert("Update failed.");
                 }
                 }catch(err){
+                    console.error("Network Error", err);
+                }
+            }
+        
+        async function addBio(Id) {
+                const userId = parseInt(Id);
+                const bio = prompt("Please enter your Bio");
+                if (!bio) {
+                    alert("No Bio provided.");
+                    return;
+                }
+                if (!userId) {
+                    console.error("❌ User ID is undefined!", userId);
+                    alert("User not logged in or missing.");
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/add-bio', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId: userId, bio: bio })
+                    });
+                    const data = await response.json();
+                    console.log(data);
+                    if (response.ok) {
+                        alert("added Successfully");
+                        window.location.reload();
+                    }
+                    else {
+                        alert("Update failed.");
+                    }
+                } catch (err) {
                     console.error("Network Error", err);
                 }
             }

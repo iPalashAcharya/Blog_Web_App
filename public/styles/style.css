@@ -886,9 +886,21 @@ a {
 }
 
 .authorBio {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
     font-size: 14px;
     color: #444;
     margin-bottom: 15px;
+}
+
+.authorBio .updateBio {
+    display: none;
+}
+
+.authorBio:hover .updateBio {
+    display: block;
 }
 
 .authorSocials a {

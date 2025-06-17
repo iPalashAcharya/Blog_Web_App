@@ -34,8 +34,12 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle">Profile <i class="fa-solid fa-circle-chevron-down"></i></a>
                         <ul class="dropdown-menu">
-                            <li><a href="/author">My Profile</a></li>
-                            <li><a href="#" id="logout-link">Logout</a></li>
+                            <%if(user){%>
+                                <li><a href="/author/<%=user?.id%>">My Profile</a></li>
+                                <li><a href="#" id="logout-link">Logout</a></li>
+                            <%}else{%>
+                                <li><a href="/login">Login</a></li>
+                            <%}%>
                         </ul>
                     </li>
                 </ul>
@@ -59,7 +63,7 @@
                     <i class="far fa-user"></i>
                     <p class="work-sans authorName"><%=post.author_name%></p>
                     <p class="work-sans"><%=new Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></p>
-                    <i class="<%= user.blogLiked ? 'fa-solid' : 'fa-regular' %> fa-heart like blogLike" data-post-id="<%=post.blog_id%>"></i> <p><%=post.blog_likes_count%></p> <!--come back to this once session is implemented-->
+                    <i class="<%= user && user.blogLiked ? 'fa-solid' : 'fa-regular' %> fa-heart like blogLike" data-post-id="<%=post.blog_id%>"></i> <p><%=post.blog_likes_count%></p> 
                 </div>
             </div>
 
@@ -126,12 +130,16 @@
                 <%for (const comment of post.comments){%>
                 <div class="commentBox">
                     <div class="commentHeader">
+                        <a href="/author/<%=comment.commented_by_id%>">
                         <img src="<%=comment.commented_by_profile%>" alt="User">
+                        </a>
+                        <a href="/author/<%=comment.commented_by_id%>">
                         <div class="userInfo">
                             <div class="CommentName"><%=comment.commented_by%></div>
                             <div class="commentDate"><%=new Date(comment.commented_on).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></div>
                         </div>
-                        <%if(locals.user && user.name===comment.commented_by){%>
+                        </a>
+                        <%if(locals.user && user.id===comment.commented_by_id){%>
                         <div class="commentMenuWrapper">
                             <i class="fa-solid fa-ellipsis-vertical menuIcon" onclick="toggleMenu(this)"></i>
                             <div class="commentDropdown">
@@ -145,12 +153,15 @@
                         <%=comment.comment_text%>
                     </div>
                     <div class="commentActions">
-                        <span><i class="<%= user.commentLiked.includes(comment.comment_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like commentLike" data-comment-id="<%=comment.comment_id%>"></i> <span class="like_count"><%=comment.comment_likes%></span></span><!--come back to this once session is implemented-->
+                        <span><i class="<%= locals.user && user.commentLiked && user.commentLiked.includes(comment.comment_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like commentLike" data-comment-id="<%=comment.comment_id%>"></i> <span class="like_count"><%=comment.comment_likes%></span></span>
                         <span class="replyToggle" data-comment-id="<%=comment.comment_id%>"><i class="fa-regular fa-comment"></i> <span class="replies-count">
                             <%= comment.replies && comment.replies.length ? comment.replies.length : 0 %> replies
                         </span></span>
+                        <%if(locals.user){%>
                         <span class="replyButton" data-comment-id="<%=comment.comment_id%>">Reply</span>
+                        <%}%>
                     </div>
+                    <%if(locals.user){%>
                     <div class="replyFormContainer" id="replyForm-<%=comment.comment_id%>" style="display:none">
                         <%if(locals.editingReply){%>
                         <form class="replyForm" method="post" action="/api/reply/modify/<%=editingReply.reply_id%>">
@@ -176,6 +187,7 @@
                             </form>
                         <%}%>
                     </div>
+                    <%}%>
                     <div class="repliesContainer" id="replies-<%=comment.comment_id%>" style="display: none;">
                     <% if(comment.replies && comment.replies.length> 0) { %>
                         <% for(const reply of comment.replies) { %>
@@ -186,7 +198,10 @@
                                     </div>
                                 <% } %>
                                 <div class="replyHeader">
+                                    <a href="/author/<%=reply.replied_by_id%>">
                                     <img src="<%=reply.replied_by_profile%>" alt="User" class="replyUserImg">
+                                    </a>
+                                    <a href="/author/<%=reply.replied_by_id%>">
                                     <div class="userInfo">
                                         <div class="replyName">
                                             <%=reply.replied_by%>
@@ -196,7 +211,8 @@
                                                 Date(reply.replied_on).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%>
                                         </div>
                                     </div>
-                                    <%if(locals.user && user.name===reply.replied_by){%>
+                                    </a>
+                                    <%if(locals.user && user.id===reply.replied_by_id){%>
                                     <div class="replyMenuWrapper">
                                         <i class="fa-solid fa-ellipsis-vertical menuIcon" onclick="toggleReplyMenu(this)"></i>
                                         <div class="replyDropdown">
@@ -215,12 +231,14 @@
                                     <%=reply.reply_text%>
                                 </div>
                                 <div class="replyActions">
-                                    <span><i class="<%= user.replyLiked.includes(reply.reply_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like replyLike"
+                                    <span><i class="<%= locals.user&& user.replyLiked && user.replyLiked.includes(reply.reply_id) ? 'fa-solid' : 'fa-regular' %> fa-heart like replyLike"
                                             data-reply-id="<%=reply.reply_id%>"></i> <span class="reply_like_count">
                                             <%=reply.reply_likes%>
                                         </span></span>
+                                    <%if(locals.user){%>
                                     <span class="replyToReplyButton" data-comment-id="<%=comment.comment_id%>" data-reply-id="<%=reply.reply_id%>"
                                         data-username="<%=reply.replied_by%>">Reply</span>
+                                    <%}%>
                                 </div>
                             </div>
                         <% } %>
@@ -280,23 +298,32 @@
                 const username = this.getAttribute('data-username');
 
                 const replyForm = document.getElementById(`replyForm-${commentId}`);
+                if (!replyForm) return;
                 replyForm.style.display = 'block';
 
                 const parentReplyField = replyForm.querySelector('input[name="parent_reply_id"]');
-                parentReplyField.value = replyId;
+                if(parentReplyField){
+                    parentReplyField.value = replyId;
+                }
 
                 const indicator = replyForm.querySelector('.replying-to-indicator');
-                indicator.textContent = `Replying to ${username}`;
-                indicator.style.display = 'block';
+                if(indicator){
+                    indicator.textContent = `Replying to ${username}`;
+                    indicator.style.display = 'block';
+                }
                 const textarea = replyForm.querySelector('textarea');
-                textarea.focus();
+                if(textarea){
+                    textarea.focus();
+                }
 
                 const cancelButton = replyForm.querySelector('.cancelReply');
-                cancelButton.addEventListener('click', function () {
-                    parentReplyField.value = '';
-                    indicator.style.display = 'none';
-                    indicator.textContent = '';
-                });
+                if(cancelButton){
+                    cancelButton.addEventListener('click', function () {
+                        parentReplyField.value = '';
+                        indicator.style.display = 'none';
+                        indicator.textContent = '';
+                    });
+                }
 
                 const repliesContainer = document.getElementById(`replies-${commentId}`);
                 if (repliesContainer) {
@@ -306,11 +333,9 @@
         });
 
             document.addEventListener('DOMContentLoaded', function () {
-                if (window.editingReply) {
+                if (window.editingReply &&window.editingReply.comment_id) {
                     const commentId = window.editingReply.comment_id;
-                    console.log(commentId); //output=> NaN
                     const replyForm = document.getElementById(`replyForm-${commentId}`);
-                    console.log(replyForm); //output=> null
                     if (replyForm) {
                         replyForm.style.display = 'block';
 
@@ -358,39 +383,6 @@
                     console.error("Network Error",error);
                 }
             });
-        /*document.querySelector('.commentLike').addEventListener('click',async function (){
-            const comment_id = this.getAttribute('data-comment-id');
-            const countSpan = this.nextElementSibling;
-            const icon = this;
-            try{
-                const response = await fetch('/api/like',{
-                    method:"POST",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({comment_id:comment_id})
-                });
-                const result = await response.json();
-                if(response.ok){
-                    /*this.classList.toggle("fa-solid");
-                    this.classList.toggle("fa-regular");
-                    const isNowLiked = result.liked;
-                    if (isNowLiked){
-                        icon.classList.add("fa-solid");
-                        icon.classList.remove("fa-regular");
-                    }else{
-                        icon.classList.add("fa-regular");
-                        icon.classList.remove("fa-solid");
-                    }
-                    const currentCount = parseInt(countSpan.textContent);
-                    countSpan.textContent = isNowLiked ? currentCount+1 : currentCount-1;
-                }else{
-                    console.error('Error liking comment',result.error);
-                }
-            }catch(error){
-                console.error("Network Error",error);
-            }
-        });*/
         document.querySelectorAll('.commentLike').forEach(like => {
                 like.addEventListener('click', async function () {
                     const commentId = this.getAttribute('data-comment-id');
@@ -490,8 +482,13 @@
                 button.addEventListener('click', function () {
                     const commentId = this.getAttribute('data-comment-id');
                     const replyForm = document.getElementById(`replyForm-${commentId}`);
-                    replyForm.style.display = 'block';
-                    replyForm.querySelector('textarea').focus();
+                    if(replyForm){
+                        replyForm.style.display = 'block';
+                        const textarea = replyForm.querySelector('textarea').focus();
+                        if (textarea) {
+                            textarea.focus();
+                        }
+                    }
                 });
             });
 
@@ -500,8 +497,15 @@
                 button.addEventListener('click', function () {
                     const commentId = this.getAttribute('data-comment-id');
                     const replyForm = document.getElementById(`replyForm-${commentId}`);
-                    replyForm.style.display = 'none';
-                    replyForm.querySelector('textarea').value = '';
+                    if(replyForm){
+                        replyForm.style.display = 'none';
+                        if(replyForm){
+                            const textarea = replyForm.querySelector('textarea');
+                            if(textarea){
+                                textarea.value = '';
+                            }
+                        }
+                    }
                 });
             });
 
@@ -509,10 +513,12 @@
                 toggle.addEventListener('click', function () {
                     const commentId = this.getAttribute('data-comment-id');
                     const repliesContainer = document.getElementById(`replies-${commentId}`);
-                    if (repliesContainer.style.display === 'none' || repliesContainer.style.display === '') {
-                        repliesContainer.style.display = 'block';
-                    } else {
-                        repliesContainer.style.display = 'none';
+                    if(repliesContainer){
+                        if (repliesContainer.style.display === 'none' || repliesContainer.style.display === '') {
+                            repliesContainer.style.display = 'block';
+                        } else {
+                            repliesContainer.style.display = 'none';
+                        }
                     }
                 });
             });

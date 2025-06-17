@@ -62,7 +62,8 @@ app.get('/', async (req, res) => {
         featuredPost,
         paginatedPosts,
         currentPage: page,
-        totalPages
+        totalPages,
+        user: req.user
     });
 });
 
@@ -114,7 +115,8 @@ app.get('/blogs', async (req, res) => {
             featuredPost,
             paginatedPosts,
             currentPage: page,
-            totalPages
+            totalPages,
+            user: req.user || null
         });
     } catch (error) {
         console.error(error);
@@ -122,15 +124,18 @@ app.get('/blogs', async (req, res) => {
     }
 });
 
-app.get('/author', requireAuth, async (req, res) => {
+app.get('/author/:id', requireAuth, async (req, res) => {
     try {
         const type = req.query.type || 'post';
         const page = parseInt(req.query.page) || 1;
         const limit = 6;
-        const userId = req.user.id;
+        const userId = req.params.id;
 
         const response = await axios.get(`${API_URL}/author/${userId}`);
         const posts = response.data;
+
+        const response2 = await axios.get(`${API_URL}/user/${userId}`);
+        const user = response2.data[0];
 
         const draftPosts = posts.filter(blog => blog.is_draft === true);
         const publishedPosts = posts.filter(blog => blog.is_draft === false);
@@ -150,7 +155,7 @@ app.get('/author', requireAuth, async (req, res) => {
         const paginatedPublishedPosts = sortedPublishedPosts.slice(startIndex, startIndex + limit);
         const paginatedDraftPosts = sortedDraftPosts.slice(startIndex, startIndex + limit);
 
-        res.render('author.ejs', { paginatedPosts: paginatedPublishedPosts, currentPage: page, totalPostPages, user: req.user, totalDraftPages, paginatedDraftPosts, activeType: type });
+        res.render('author.ejs', { paginatedPosts: paginatedPublishedPosts, currentPage: page, totalPostPages, publicUser: user, loggedInUser: req.user, totalDraftPages, paginatedDraftPosts, activeType: type });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -158,7 +163,7 @@ app.get('/author', requireAuth, async (req, res) => {
 });
 
 app.get('/new', requireAuth, (req, res) => {
-    res.render('create_blog.ejs');
+    res.render('create_blog.ejs', { user: req.user });
 });
 
 app.get('/blog/:id', async (req, res) => {
@@ -168,13 +173,15 @@ app.get('/blog/:id', async (req, res) => {
         const deltaOps = post.content.ops;
         const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
         post.contentHtml = converter.convert();
-        const response2 = await axios.post(`${API_URL}/check-likes`, { id: req.user.id }, { headers: { 'Content-Type': 'application/json' }, timeout: 3000 },);
-        const likedBlogs = response2.data.blogLikes;
-        const blogLiked = likedBlogs.includes(parseInt(req.params.id));
-        req.user.blogLiked = blogLiked;
-        req.user.commentLiked = response2.data.commentLikes;
-        req.user.replyLiked = response2.data.replyLikes;
-        res.render('single_blog.ejs', { post, user: req.user });
+        if (req.user && req.user.id) {
+            const response2 = await axios.post(`${API_URL}/check-likes`, { id: req.user.id }, { headers: { 'Content-Type': 'application/json' }, timeout: 3000 },);
+            const likedBlogs = response2.data.blogLikes;
+            const blogLiked = likedBlogs.includes(parseInt(req.params.id));
+            req.user.blogLiked = blogLiked;
+            req.user.commentLiked = response2.data.commentLikes;
+            req.user.replyLiked = response2.data.replyLikes;
+        }
+        res.render('single_blog.ejs', { post, user: req.user || null });
     } catch (error) {
         console.error("ERROR:", error.message);
         if (error.response) {
@@ -195,7 +202,7 @@ app.get('/modify/:id', requireAuth, async (req, res) => {
         const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
         post.contentHtml = converter.convert();
         console.log(post.comments);
-        res.render('create_blog.ejs', { post });
+        res.render('create_blog.ejs', { post, user: req.user });
     } catch (error) {
         console.error(error);
         res.status(500).send("Internal server error");
@@ -205,7 +212,7 @@ app.get('/modify/:id', requireAuth, async (req, res) => {
 app.get('/delete/:id', requireAuth, async (req, res) => {
     try {
         await axios.delete(`${API_URL}/posts/${req.params.id}`);
-        res.redirect('/author');
+        res.redirect(`/author/${req.user.id}`);
     } catch (error) {
         console.error(error);
         res.status(500).send("Error deleting post");
@@ -260,6 +267,22 @@ app.post('/api/profile', requireAuth, async (req, res) => {
     }
 });
 
+app.post('/api/add-bio', requireAuth, async (req, res) => {
+    try {
+        const result = await axios.post(`${API_URL}/add-bio`, req.body);
+        return res.status(result.status).json(result.data);
+    } catch (error) {
+        console.error("ERROR:", error.message);
+        if (error.response) {
+            console.error("RESPONSE DATA:", error.response.data);
+            console.error("STATUS:", error.response.status);
+        } else {
+            console.error("STACK:", error.stack);
+        }
+        res.status(500).send("Internal Server Error");
+    }
+});
+
 app.post('/api/post', requireAuth, async (req, res) => {
     req.body.username = req.user.name;
     try {
@@ -274,7 +297,7 @@ app.post('/api/post', requireAuth, async (req, res) => {
 app.post('/api/edit/:id', requireAuth, async (req, res) => {
     try {
         await axios.patch(`${API_URL}/posts/${req.params.id}`, req.body);
-        res.redirect('/author');
+        res.redirect(`/author/${req.user.id}`);
     } catch (error) {
         res.status(500).json({ message: 'Error Updating BlogPost' });
     }
@@ -311,7 +334,7 @@ app.get('/comment/modify/:blogId/:commentId', async (req, res) => {
         const commentToEdit = post.comments.find(
             (c) => c.comment_id === parseInt(req.params.commentId)
         );
-        res.render('single_blog.ejs', { post: post, editingComment: commentToEdit });
+        res.render('single_blog.ejs', { post: post, editingComment: commentToEdit, user: req.user });
     } catch (error) {
         console.error("ERROR:", error.message);
         if (error.response) {
@@ -340,7 +363,7 @@ app.get('/reply/modify/:blogId/:replyId', async (req, res) => {
                 }
             }
         }
-        res.render('single_blog.ejs', { post: post, editingReply: replyToEdit });
+        res.render('single_blog.ejs', { post: post, editingReply: replyToEdit, user: req.user });
     } catch (error) {
         console.error("ERROR:", error.message);
         if (error.response) {
