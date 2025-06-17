@@ -48,10 +48,6 @@ passport.use('google', new GoogleStrategy(
             let user = result.rows[0];
 
             if (user) {
-                if (user.profile_icon_url !== profile.photos[0].value) {
-                    await client.query("UPDATE users SET profile_icon_url = $1 WHERE id = $2", [profile.photos[0].value, user.id])
-                    user.profile_icon_url = profile.photos[0].value;
-                }
                 return done(null, user);
             }
 

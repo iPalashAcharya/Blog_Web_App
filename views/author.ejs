@@ -57,7 +57,7 @@
                         </div>
                         <div class="authorInfo">
                             <%if(publicUser.id===loggedInUser.id){%>
-                            <h3><%=loggedInUser.name%></h3>
+                            <h3><%=loggedInUser.name%> <button class="updateName" onclick="updateName('<%=loggedInUser.id%>')"><i class="fa-solid fa-pen"></i></button></h3>
                             <%}else{%>
                             <h3>
                                 <%=publicUser.name%>
@@ -275,6 +275,40 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ userId: userId, bio: bio })
+                    });
+                    const data = await response.json();
+                    console.log(data);
+                    if (response.ok) {
+                        alert("added Successfully");
+                        window.location.reload();
+                    }
+                    else {
+                        alert("Update failed.");
+                    }
+                } catch (err) {
+                    console.error("Network Error", err);
+                }
+            }
+        async function updateName(Id) {
+                const userId = parseInt(Id);
+                const name = prompt("Please enter your Name");
+                if (!name) {
+                    alert("No Name provided.");
+                    return;
+                }
+                if (!userId) {
+                    console.error("❌ User ID is undefined!", userId);
+                    alert("User not logged in or missing.");
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/update-name', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId: userId, name: name })
                     });
                     const data = await response.json();
                     console.log(data);

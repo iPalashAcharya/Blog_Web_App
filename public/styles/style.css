@@ -899,6 +899,14 @@ a {
     display: none;
 }
 
+.authorInfo .updateName {
+    display: none;
+}
+
+.authorInfo:hover .updateName {
+    display: block;
+}
+
 .authorBio:hover .updateBio {
     display: block;
 }

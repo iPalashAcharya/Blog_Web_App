@@ -162,6 +162,31 @@ app.post("/add-bio", async (req, res) => {
     }
 });
 
+app.post("/update-name", async (req, res) => {
+    const client = await connectionPool.connect();
+    const userId = req.body.userId;
+    if (!userId) {
+        return res.status(400).json({ error: "User Id Missing" });
+    }
+    try {
+        const result = await client.query("UPDATE users SET name = $1 WHERE id = $2", [req.body.name, userId]);
+        return res.status(200).json({
+            message: 'User Name Updated Successfully'
+        });
+    } catch (error) {
+        console.error("ERROR:", error.message);
+        if (error.response) {
+            console.error("RESPONSE DATA:", error.response.data);
+            console.error("STATUS:", error.response.status);
+        } else {
+            console.error("STACK:", error.stack);
+        }
+        res.status(500).send("Internal Server Error");
+    } finally {
+        client.release();
+    }
+});
+
 app.post('/check-likes', async (req, res) => {
     const client = await connectionPool.connect();
     const userId = req.body.id;

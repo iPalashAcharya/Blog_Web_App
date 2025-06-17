@@ -283,6 +283,22 @@ app.post('/api/add-bio', requireAuth, async (req, res) => {
     }
 });
 
+app.post('/api/update-name', requireAuth, async (req, res) => {
+    try {
+        const result = await axios.post(`${API_URL}/update-name`, req.body);
+        return res.status(result.status).json(result.data);
+    } catch (error) {
+        console.error("ERROR:", error.message);
+        if (error.response) {
+            console.error("RESPONSE DATA:", error.response.data);
+            console.error("STATUS:", error.response.status);
+        } else {
+            console.error("STACK:", error.stack);
+        }
+        res.status(500).send("Internal Server Error");
+    }
+});
+
 app.post('/api/post', requireAuth, async (req, res) => {
     req.body.username = req.user.name;
     try {
