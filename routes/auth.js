@@ -3,7 +3,7 @@ const passport = require('passport');
 const bcrypt = require('bcrypt');
 const { rateLimitAuth } = require('../config/passport');
 const router = express.Router();
-const connectionPool = require('../index');
+const { connectionPool } = require('../db');
 
 const saltRounds = 10;
 
@@ -83,5 +83,32 @@ router.post('/logout', (req, res) => {
         });
     });
 });
+
+router.get('/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+    passport.authenticate('google', {
+        successRedirect: '/',
+        failureRedirect: '/login'
+    })
+);
+
+// Alternative Google callback with JSON response
+router.get('/google/callback/json',
+    passport.authenticate('google'),
+    (req, res) => {
+        res.json({
+            message: 'Google authentication successful',
+            user: {
+                id: req.user.id,
+                username: req.user.name,
+                googleId: req.user.google_id,
+                profile_icon_url: req.user.profile_icon_url
+            }
+        });
+    }
+);
 
 module.exports = router;

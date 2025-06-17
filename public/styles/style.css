@@ -463,7 +463,9 @@ a {
 }
 
 .blogContent {
-    padding: 20px;
+    align-self: flex-start;
+    padding-top: 20px;
+    padding-bottom: 20px;
     font-family: 'Work Sans', serif;
 }
 

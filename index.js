@@ -1,23 +1,13 @@
 const express = require("express");
-const { Pool } = require('pg');
+const { connectionPool } = require('./db');
 const { requireAuth, requireAdmin, rateLimitAuth } = require('./config/passport');
 
 const env = require('dotenv');
 
 env.config();
 
-const connectionPool = new Pool({
-    max: 5,
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
 const app = express();
 const port = 4000;
-let isPoolClosed = false;
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -448,16 +438,4 @@ app.delete('/reply/:id', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`API is running on http://localhost:${port}`);
-});
-
-module.exports = connectionPool;
-
-process.on('SIGINT', async () => {
-    if (!isPoolClosed) {
-        console.log('Closing database connection pool...');
-        await connectionPool.end();
-        isPoolClosed = true;
-        console.log('Database connection pool closed.');
-    }
-    process.exit(0);
 });

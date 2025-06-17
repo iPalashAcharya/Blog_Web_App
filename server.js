@@ -3,7 +3,7 @@ const axios = require('axios');
 const session = require('express-session');
 const { passport } = require('./config/passport');
 const pgSession = require('connect-pg-simple')(session);
-const pool = require('./index');
+const { connectionPool, safeEndPool } = require('./db');
 const authRoutes = require('./routes/auth');
 const { QuillDeltaToHtmlConverter } = require('quill-delta-to-html');
 const env = require('dotenv');
@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
     store: new pgSession({
-        pool: pool,
+        pool: connectionPool,
         tableName: 'session',
     }),
     secret: process.env.SESSION_SECRET,
@@ -46,7 +46,7 @@ app.get('/', async (req, res) => {
 
     const publishedPosts = posts.filter(post => !post.is_draft);
     const sortedPosts = [...publishedPosts].sort((a, b) =>
-        new Date(b.last_updated) - new Date(a.last_updated)
+        new Date(b.creation_date) - new Date(a.creation_date)
     );
 
     const featuredPost = sortedPosts[0];
@@ -98,7 +98,7 @@ app.get('/blogs', async (req, res) => {
 
         const publishedPosts = posts.filter(post => !post.is_draft);
         const sortedPosts = [...publishedPosts].sort((a, b) =>
-            new Date(b.last_updated) - new Date(a.last_updated)
+            new Date(b.creation_date) - new Date(a.creation_date)
         );
 
         const featuredPost = sortedPosts[0];
@@ -139,10 +139,10 @@ app.get('/author', requireAuth, async (req, res) => {
         const totalPostPages = Math.ceil(publishedPosts.length / limit);
 
         const sortedDraftPosts = [...draftPosts].sort((a, b) =>
-            new Date(b.last_updated) - new Date(a.last_updated)
+            new Date(b.creation_date) - new Date(a.creation_date)
         );
         const sortedPublishedPosts = [...publishedPosts].sort((a, b) =>
-            new Date(b.last_updated) - new Date(a.last_updated)
+            new Date(b.creation_date) - new Date(a.creation_date)
         );
 
         const startIndex = (page - 1) * limit;
@@ -425,6 +425,19 @@ app.post('/api/like', requireAuth, async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Running on http://localhost:${port}`)
+});
+
+process.on('SIGINT', async () => {
+    console.log('Gracefully shutting down...');
+    server.close(async () => {
+        try {
+            await safeEndPool();
+        } catch (err) {
+            console.error('Error closing database pool:', err);
+        } finally {
+            process.exit(0);
+        }
+    });
 });

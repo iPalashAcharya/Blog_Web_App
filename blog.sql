@@ -396,3 +396,5 @@ INSERT INTO comment_like (user_id, comment_id) VALUES
 }
 
 "../images/cardImage.png"
+
+ALTER TABLE users ADD COLUMN google_id TEXT UNIQUE;

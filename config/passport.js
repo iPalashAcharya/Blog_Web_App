@@ -1,24 +1,13 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth2');
 const bcrypt = require('bcrypt');
 const env = require('dotenv');
-const { Pool } = require('pg');
+const { connectionPool } = require('../db');
 
 env.config();
 
-const connectionPool = new Pool({
-    max: 5,
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
-let isPoolClosed = false;
-
-
-passport.use(new LocalStrategy(async function verify(username, password, cb) {
+passport.use('local', new LocalStrategy(async function verify(username, password, cb) {
     const client = await connectionPool.connect();
     try {
         const result = await client.query("SELECT * FROM users WHERE name = $1", [username]);
@@ -45,6 +34,43 @@ passport.use(new LocalStrategy(async function verify(username, password, cb) {
         client.release();
     }
 }));
+
+passport.use('google', new GoogleStrategy(
+    {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: 'http://localhost:3000/auth/google/callback'
+    },
+    async (accessToken, refreshToken, profile, done) => {
+        const client = await connectionPool.connect();
+        try {
+            let result = await client.query("SELECT * FROM users WHERE google_id=$1", [profile.id]);
+            let user = result.rows[0];
+
+            if (user) {
+                if (user.profile_icon_url !== profile.photos[0].value) {
+                    await client.query("UPDATE users SET profile_icon_url = $1 WHERE id = $2", [profile.photos[0].value, user.id])
+                    user.profile_icon_url = profile.photos[0].value;
+                }
+                return done(null, user);
+            }
+
+            // Create new user
+            const insertResult = await client.query(
+                `INSERT INTO users (name, profile_icon_url,password, google_id)
+                VALUES ($1, $2, $3,$4)
+                RETURNING *`,
+                [profile.displayName, profile.photos[0].value, 'google', profile.id]
+            );
+
+            const newUser = insertResult.rows[0];
+            return done(null, newUser);
+
+        } catch (error) {
+            return done(error, null);
+        }
+    }
+));
 
 passport.serializeUser((user, cb) => {
     cb(null, user.id);
@@ -135,16 +161,6 @@ setInterval(() => {
         }
     }
 }, 10 * 60 * 1000);
-
-process.on('SIGINT', async () => {
-    if (!isPoolClosed) {
-        console.log('Closing database connection pool...');
-        await connectionPool.end();
-        isPoolClosed = true;
-        console.log('Database connection pool closed.');
-    }
-    process.exit(0);
-});
 
 module.exports = {
     passport,
