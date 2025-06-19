@@ -20,7 +20,8 @@
     <header>
         <div class="navbarContainer">
             <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
-            <div class="navLinks">
+            <div class="hamburger" id="hamburger">&#9776;</div>
+            <div class="navLinks" id="navLinks">
                 <ul class="navLinkList work-sans">
                     <li><a href="./">Home</a></li>
                     <li><a href="./blogs">Blog</a></li>
@@ -127,6 +128,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script>
+        document.getElementById('hamburger').addEventListener('click', () => {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('open');
+        });
         document.getElementById('logout-link').addEventListener('click', async function (e) {
                 e.preventDefault();
 

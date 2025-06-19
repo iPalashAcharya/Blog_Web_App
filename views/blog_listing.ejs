@@ -19,7 +19,8 @@
     <header>
         <div class="navbarContainer">
             <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
-            <div class="navLinks">
+            <div class="hamburger" id="hamburger">&#9776;</div>
+            <div class="navLinks" id="navLinks">
                 <ul class="navLinkList work-sans">
                     <li><a href="/">Home</a></li>
                     <li><a href="/blogs">Blog</a></li>
@@ -83,92 +84,10 @@
         <section id="blogDisplay">
             <div class="blogDisplayContainer">
                 <div class="blogGrid">
-                    <!--<div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>
-                    <div class="blogCard">
-                        <div class="blogCardImage"><img src="../images/cardImage.png"></div>
-        
-                        <div class="tag">
-                            <p>Technology</p>
-                        </div>
-                        <h3>The Impact of Technology on the Workplace: How Technology is Changing</h3>
-                        <div class="blogDetails">
-                            <i class="far fa-user"></i>
-                            <p class="work-sans authorName">Palash Acharya</p>
-                            <p class="work-sans">January 29 2025</p>
-                        </div>
-                    </div>-->
                     <%for(let post of paginatedPosts){%>
                         <a href='blog/<%=post.blog_id%>'>
                             <div class="blogCard">
                                 <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
-                    
-                                <!--<div class="tag">
-                                            <p>Technology</p>
-                                        </div>-->
                                 <div class="tags">
                                     <%for (const tag of post.tags.split(',').map(x=>x.trim())){%>
                                         <div class="tag">
@@ -226,6 +145,10 @@
         </div>
     </footer>
     <script>
+        document.getElementById('hamburger').addEventListener('click', () => {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('open');
+        });
         document.getElementById('logout-link').addEventListener('click', async function (e) {
                 e.preventDefault();
 
