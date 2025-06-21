@@ -49,7 +49,7 @@
                     <div class="authorDetails">
                         <div class="authorImage">
                             <%if(publicUser.id===loggedInUser.id){%>
-                            <button class="profileUpload" onclick="handleProfile('<%=loggedInUser.id%>')">Upload Profile Picture Url</button>
+                            <button class="profileUpload" onclick="handleProfile()">Upload Profile Picture Url</button>
                             <%}%>
                             <%if(publicUser.id===loggedInUser.id){%>
                             <img src="<%=loggedInUser.profile_icon_url%>" alt="Author Profile Picture">
@@ -59,7 +59,7 @@
                         </div>
                         <div class="authorInfo">
                             <%if(publicUser.id===loggedInUser.id){%>
-                            <h3><%=loggedInUser.name%> <button class="updateName" onclick="updateName('<%=loggedInUser.id%>')"><i class="fa-solid fa-pen"></i></button></h3>
+                            <h3><%=loggedInUser.name%> <button class="updateName" onclick="updateName()"><i class="fa-solid fa-pen"></i></button></h3>
                             <%}else{%>
                             <h3>
                                 <%=publicUser.name%>
@@ -70,9 +70,9 @@
                     <p class="authorBio">
                         <%if(loggedInUser.id===publicUser.id){%>
                         <%if(loggedInUser.bio){%>
-                        <%=loggedInUser.bio%> <button class = "updateBio" onclick="addBio('<%=loggedInUser.id%>')"><i class="fa-solid fa-pen"></i></button>
+                        <%=loggedInUser.bio%> <button class = "updateBio" onclick="addBio()"><i class="fa-solid fa-pen"></i></button>
                         <%}else{%>
-                            <button onclick="addBio('<%=loggedInUser.id%>')">Add Bio</button>
+                            <button onclick="addBio()">Add Bio</button>
                         <%}%>
                         <%}else{%>
                         <%=publicUser.bio%>
@@ -227,18 +227,17 @@
             const nav = document.getElementById('navLinks');
             nav.classList.toggle('open');
         });
-        async function handleProfile(Id){
-            const userId = parseInt(Id);
+        async function handleProfile(){
             const profile_icon_url = prompt("Please enter your profile icon Url:");
             if (!profile_icon_url) {
                 alert("No URL provided.");
                 return;
             }
-            if (!userId) {
+            /*if (!userId) {
                 console.error("❌ User ID is undefined!", userId);
                 alert("User not logged in or missing.");
                 return;
-            }
+            }*/
             try{
                 const response = await fetch('/api/profile', {
                     method: 'POST',
@@ -246,7 +245,7 @@
                     headers:{
                         'Content-Type':'application/json',
                     },
-                    body:JSON.stringify({userId:userId,profile_icon_url:profile_icon_url})
+                    body:JSON.stringify({profile_icon_url:profile_icon_url})
                 });
                 const data = await response.json();
                 console.log(data);
@@ -262,18 +261,17 @@
                 }
             }
         
-        async function addBio(Id) {
-                const userId = parseInt(Id);
+        async function addBio() {
                 const bio = prompt("Please enter your Bio");
                 if (!bio) {
                     alert("No Bio provided.");
                     return;
                 }
-                if (!userId) {
+                /*if (!userId) {
                     console.error("❌ User ID is undefined!", userId);
                     alert("User not logged in or missing.");
                     return;
-                }
+                }*/
                 try {
                     const response = await fetch('/api/add-bio', {
                         method: 'POST',
@@ -281,7 +279,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ userId: userId, bio: bio })
+                        body: JSON.stringify({ bio: bio })
                     });
                     const data = await response.json();
                     console.log(data);
@@ -296,16 +294,10 @@
                     console.error("Network Error", err);
                 }
             }
-        async function updateName(Id) {
-                const userId = parseInt(Id);
+        async function updateName() {
                 const name = prompt("Please enter your Name");
                 if (!name) {
                     alert("No Name provided.");
-                    return;
-                }
-                if (!userId) {
-                    console.error("❌ User ID is undefined!", userId);
-                    alert("User not logged in or missing.");
                     return;
                 }
                 try {
@@ -315,7 +307,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ userId: userId, name: name })
+                        body: JSON.stringify({ name: name })
                     });
                     const data = await response.json();
                     console.log(data);

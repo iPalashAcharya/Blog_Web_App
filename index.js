@@ -1,5 +1,9 @@
 const express = require("express");
 const { connectionPool } = require('./db');
+const session = require('express-session');
+const { passport } = require('./config/passport');
+const pgSession = require('connect-pg-simple')(session);
+const cors = require('cors');
 const { requireAuth, requireAdmin, rateLimitAuth } = require('./config/passport');
 
 const env = require('dotenv');
@@ -8,6 +12,11 @@ env.config();
 
 const app = express();
 const port = 4000;
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -18,6 +27,23 @@ app.use((err, req, res, next) => {
     next();
 });
 app.set('trust proxy', true);
+
+app.use(session({
+    store: new pgSession({
+        pool: connectionPool,
+        tableName: 'session',
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false,
+        sameSite: 'lax'
+    }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 async function getAllBlogs() {
     const client = await connectionPool.connect();
@@ -92,14 +118,15 @@ app.get('/user/:id', async (req, res) => {
     }
 });
 
-app.post('/profile', async (req, res) => {
+app.post('/profile', requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
-    const userId = req.body.userId;
+    console.log(req.user);
+    const userId = req.user.id;
     if (!userId) {
         return res.status(400).json({ error: "User id missing" });
     }
     try {
-        const result = await client.query("UPDATE users SET profile_icon_url = $1 WHERE id = $2", [req.body.profile_icon_url, userId]);
+        await client.query("UPDATE users SET profile_icon_url = $1 WHERE id = $2", [req.body.profile_icon_url, userId]);
         return res.status(200).json({
             message: 'Profile picture Updated Successfully'
         });
@@ -117,9 +144,10 @@ app.post('/profile', async (req, res) => {
     }
 });
 
-app.post("/add-bio", async (req, res) => {
+app.post("/add-bio", requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
-    const userId = req.body.userId;
+    console.log(req.user);
+    const userId = req.user.id;
     if (!userId) {
         return res.status(400).json({ error: "User Id Missing" });
     }
@@ -142,14 +170,14 @@ app.post("/add-bio", async (req, res) => {
     }
 });
 
-app.post("/update-name", async (req, res) => {
+app.post("/update-name", requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
-    const userId = req.body.userId;
+    const userId = req.user.id;
     if (!userId) {
         return res.status(400).json({ error: "User Id Missing" });
     }
     try {
-        const result = await client.query("UPDATE users SET name = $1 WHERE id = $2", [req.body.name, userId]);
+        await client.query("UPDATE users SET name = $1 WHERE id = $2", [req.body.name, userId]);
         return res.status(200).json({
             message: 'User Name Updated Successfully'
         });
@@ -167,9 +195,9 @@ app.post("/update-name", async (req, res) => {
     }
 });
 
-app.post('/check-likes', async (req, res) => {
+app.post('/check-likes', requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
-    const userId = req.body.id;
+    const userId = req.user.id;
     if (!userId) {
         return res.status(400).json({ error: "User ID missing" });
     }
@@ -186,8 +214,8 @@ app.post('/check-likes', async (req, res) => {
     }
 });
 
-app.post('/posts', async (req, res) => {
-    const author_id = req.body.id;
+app.post('/posts', requireAuth, async (req, res) => {
+    const author_id = req.user.id;
     const tags = req.body.blogTags.split(',').map(tag => tag.trim());
     let is_draft = req.body.createButton === 'create' ? false : true;
     const client = await connectionPool.connect();
@@ -214,8 +242,8 @@ app.post('/posts', async (req, res) => {
     }
 });
 
-app.post('/reply', async (req, res) => {
-    const authorName = req.body.username;
+app.post('/reply', requireAuth, async (req, res) => {
+    const authorName = req.user.name;
     const client = await connectionPool.connect();
     const replyText = req.body.reply_text;
     const commentId = req.body.comment_id;
@@ -243,8 +271,8 @@ app.post('/reply', async (req, res) => {
     }
 });
 
-app.post('/comment', async (req, res) => {
-    const author_name = req.body.username;
+app.post('/comment', requireAuth, async (req, res) => {
+    const author_name = req.user.name;
     const client = await connectionPool.connect();
     const comment_text = req.body.commentText;
     const blog_id = req.body.blog_id;
@@ -265,7 +293,7 @@ app.post('/comment', async (req, res) => {
     }
 });
 
-app.post('/reply_like', async (req, res) => {
+app.post('/reply_like', requireAuth, async (req, res) => {
     const userId = req.body.user.id;
     const replyId = req.body.reply_id;
     const client = await connectionPool.connect();
@@ -293,7 +321,7 @@ app.post('/reply_like', async (req, res) => {
     }
 });
 
-app.post('/blog_like', async (req, res) => {
+app.post('/blog_like', requireAuth, async (req, res) => {
     const user_id = req.body.user.id;
     const post_id = req.body.post_id;
     const client = await connectionPool.connect();
@@ -314,7 +342,7 @@ app.post('/blog_like', async (req, res) => {
     }
 });
 
-app.post('/comment_like', async (req, res) => {
+app.post('/comment_like', requireAuth, async (req, res) => {
     const user_id = req.body.user.id;
     const comment_id = req.body.comment_id;
     const client = await connectionPool.connect();
@@ -336,7 +364,7 @@ app.post('/comment_like', async (req, res) => {
     }
 });
 
-app.patch('/posts/:id', async (req, res) => {
+app.patch('/posts/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
@@ -376,7 +404,7 @@ app.patch('/posts/:id', async (req, res) => {
     }
 });
 
-app.patch('/comment/:id', async (req, res) => {
+app.patch('/comment/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
@@ -404,7 +432,7 @@ app.patch('/comment/:id', async (req, res) => {
     }
 });
 
-app.patch('/reply/:id', async (req, res) => {
+app.patch('/reply/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
@@ -432,7 +460,7 @@ app.patch('/reply/:id', async (req, res) => {
     }
 });
 
-app.delete('/posts/:id', async (req, res) => {
+app.delete('/posts/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
@@ -445,7 +473,7 @@ app.delete('/posts/:id', async (req, res) => {
     }
 });
 
-app.delete('/comments/:id', async (req, res) => {
+app.delete('/comments/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
@@ -458,7 +486,7 @@ app.delete('/comments/:id', async (req, res) => {
     }
 });
 
-app.delete('/reply/:id', async (req, res) => {
+app.delete('/reply/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {

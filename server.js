@@ -174,7 +174,7 @@ app.get('/blog/:id', async (req, res) => {
         const converter = new QuillDeltaToHtmlConverter(deltaOps, {});
         post.contentHtml = converter.convert();
         if (req.user && req.user.id) {
-            const response2 = await axios.post(`${API_URL}/check-likes`, { id: req.user.id }, { headers: { 'Content-Type': 'application/json' }, timeout: 3000 },);
+            const response2 = await axios.post(`${API_URL}/check-likes`, {}, { headers: { 'Content-Type': 'application/json', Cookie: req.headers.cookie }, timeout: 3000 },);
             const likedBlogs = response2.data.blogLikes;
             const blogLiked = likedBlogs.includes(parseInt(req.params.id));
             req.user.blogLiked = blogLiked;
@@ -211,7 +211,7 @@ app.get('/modify/:id', requireAuth, async (req, res) => {
 
 app.get('/delete/:id', requireAuth, async (req, res) => {
     try {
-        await axios.delete(`${API_URL}/posts/${req.params.id}`);
+        await axios.delete(`${API_URL}/posts/${req.params.id}`, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/author/${req.user.id}`);
     } catch (error) {
         console.error(error);
@@ -221,7 +221,7 @@ app.get('/delete/:id', requireAuth, async (req, res) => {
 
 app.get('/comment/delete/:blogId/:commentId', requireAuth, async (req, res) => {
     try {
-        await axios.delete(`${API_URL}/comments/${parseInt(req.params.commentId)}`);
+        await axios.delete(`${API_URL}/comments/${parseInt(req.params.commentId)}`, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/blog/${parseInt(req.params.blogId)}`);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -237,7 +237,7 @@ app.get('/comment/delete/:blogId/:commentId', requireAuth, async (req, res) => {
 
 app.get('/reply/delete/:blogId/:replyId', requireAuth, async (req, res) => {
     try {
-        await axios.delete(`${API_URL}/reply/${parseInt(req.params.replyId)}`);
+        await axios.delete(`${API_URL}/reply/${parseInt(req.params.replyId)}`, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/blog/${parseInt(req.params.blogId)}`);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -253,7 +253,7 @@ app.get('/reply/delete/:blogId/:replyId', requireAuth, async (req, res) => {
 
 app.post('/api/profile', requireAuth, async (req, res) => {
     try {
-        const result = await axios.post(`${API_URL}/profile`, req.body);
+        const result = await axios.post(`${API_URL}/profile`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         return res.status(result.status).json(result.data);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -269,7 +269,7 @@ app.post('/api/profile', requireAuth, async (req, res) => {
 
 app.post('/api/add-bio', requireAuth, async (req, res) => {
     try {
-        const result = await axios.post(`${API_URL}/add-bio`, req.body);
+        const result = await axios.post(`${API_URL}/add-bio`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         return res.status(result.status).json(result.data);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -285,7 +285,7 @@ app.post('/api/add-bio', requireAuth, async (req, res) => {
 
 app.post('/api/update-name', requireAuth, async (req, res) => {
     try {
-        const result = await axios.post(`${API_URL}/update-name`, req.body);
+        const result = await axios.post(`${API_URL}/update-name`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         return res.status(result.status).json(result.data);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -300,9 +300,8 @@ app.post('/api/update-name', requireAuth, async (req, res) => {
 });
 
 app.post('/api/post', requireAuth, async (req, res) => {
-    req.body.id = req.user.id;
     try {
-        const response = await axios.post(`${API_URL}/posts`, req.body);
+        const response = await axios.post(`${API_URL}/posts`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         console.log(response.data);
         res.redirect('/');
     } catch (error) {
@@ -312,7 +311,7 @@ app.post('/api/post', requireAuth, async (req, res) => {
 
 app.post('/api/edit/:id', requireAuth, async (req, res) => {
     try {
-        await axios.patch(`${API_URL}/posts/${req.params.id}`, req.body);
+        await axios.patch(`${API_URL}/posts/${req.params.id}`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/author/${req.user.id}`);
     } catch (error) {
         res.status(500).json({ message: 'Error Updating BlogPost' });
@@ -320,10 +319,8 @@ app.post('/api/edit/:id', requireAuth, async (req, res) => {
 });
 
 app.post('/api/comment', requireAuth, async (req, res) => {
-    req.body.username = req.user.name;
     try {
-        const response = await axios.post(`${API_URL}/comment`, req.body);
-        console.log(response.data);
+        await axios.post(`${API_URL}/comment`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/blog/${req.body.blog_id}`);
     } catch (error) {
         res.status(500).json({ message: 'Error creating a comment' });
@@ -331,9 +328,8 @@ app.post('/api/comment', requireAuth, async (req, res) => {
 });
 
 app.post('/api/reply', requireAuth, async (req, res) => {
-    req.body.username = req.user.name;
     try {
-        const response = await axios.post(`${API_URL}/reply`, req.body);
+        await axios.post(`${API_URL}/reply`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         res.redirect(`/blog/${req.body.blog_id}`);
     } catch (error) {
         res.status(500).json({ message: 'Error Replying' });
@@ -400,7 +396,7 @@ app.post('/api/comment/modify/:id', requireAuth, async (req, res) => {
             return res.status(400).send("Error: Blog ID not provided in form");
         }
         const commentId = parseInt(req.params.id);
-        await axios.patch(`${API_URL}/comment/${commentId}`, req.body);
+        await axios.patch(`${API_URL}/comment/${commentId}`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         return res.redirect(`/blog/${blogId}`);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -422,7 +418,7 @@ app.post('/api/reply/modify/:id', requireAuth, async (req, res) => {
             return res.status(400).send('Error:Blog ID not provided in form');
         }
         const replyId = parseInt(req.params.id);
-        await axios.patch(`${API_URL}/reply/${replyId}`, req.body);
+        await axios.patch(`${API_URL}/reply/${replyId}`, req.body, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         return res.redirect(`/blog/${blogId}`);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -454,7 +450,8 @@ app.post('/api/like', requireAuth, async (req, res) => {
         }
 
         const response = await axios.post(endpoint, req.body, {
-            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+            headers: { "Content-Type": "application/json", Cookie: req.headers.cookie },
         });
 
         res.json(response.data);
