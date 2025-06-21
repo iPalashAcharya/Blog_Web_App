@@ -131,10 +131,10 @@ app.get('/author/:id', requireAuth, async (req, res) => {
         const limit = 6;
         const userId = req.params.id;
 
-        const response = await axios.get(`${API_URL}/author/${userId}`);
+        const response = await axios.get(`${API_URL}/author/${userId}`, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         const posts = response.data;
 
-        const response2 = await axios.get(`${API_URL}/user/${userId}`);
+        const response2 = await axios.get(`${API_URL}/user/${userId}`, { withCredentials: true, headers: { Cookie: req.headers.cookie } });
         const user = response2.data[0];
 
         const draftPosts = posts.filter(blog => blog.is_draft === true);

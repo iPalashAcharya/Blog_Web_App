@@ -90,12 +90,18 @@ app.get('/posts/:id', async (req, res) => {
     }
 });
 
-app.get('/author/:id', async (req, res) => {
+app.get('/author/:id', requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
     try {
         const author_id = parseInt(req.params.id);
-        const blogs = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio", [author_id]);
-        res.json(blogs.rows);
+        const isSelf = author_id === req.user.id;
+        let blogQuery;
+        if (isSelf) {
+            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio", [author_id]);
+        } else {
+            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 AND blog.is_draft=false GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio", [author_id]);
+        }
+        res.json(blogQuery.rows);
     } catch (error) {
         console.error("Error executing query", error.stack);
         res.status(500).json({ error: 'Internal server error' });
@@ -104,12 +110,18 @@ app.get('/author/:id', async (req, res) => {
     }
 });
 
-app.get('/user/:id', async (req, res) => {
+app.get('/user/:id', requireAuth, async (req, res) => {
     const client = await connectionPool.connect();
     try {
         const user_id = parseInt(req.params.id);
-        const result = await client.query("SELECT * FROM users WHERE id=$1", [user_id]);
-        res.json(result.rows);
+        const isSelf = req.user.id === user_id;
+        let userQuery;
+        if (isSelf) {
+            userQuery = await client.query("SELECT * FROM users WHERE id=$1", [user_id]);
+        } else {
+            userQuery = await client.query("SELECT id, name, profile_icon_url, bio FROM users WHERE id=$1", [user_id]);
+        }
+        res.json(userQuery.rows);
     } catch (error) {
         console.error("Error executing query", error.stack);
         res.status(500).json({ error: 'Internal server error' });
@@ -368,9 +380,17 @@ app.patch('/posts/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
-        const existingBlog = await client.query("SELECT blog.banner_image_url,blog.title,blog.content, STRING_AGG(tag.tag_name,',') AS tags FROM blog LEFT JOIN blog_tag on blog.id=blog_tag.blog_id LEFT JOIN tag on blog_tag.tag_id=tag.id WHERE blog.id=$1 GROUP BY blog.id;", [index]);
+        const existingBlog = await client.query("SELECT blog.banner_image_url,blog.title,blog.content,blog.by_user, STRING_AGG(tag.tag_name,',') AS tags FROM blog LEFT JOIN blog_tag on blog.id=blog_tag.blog_id LEFT JOIN tag on blog_tag.tag_id=tag.id WHERE blog.id=$1 GROUP BY blog.id;", [index]);
         if (existingBlog.rows.length === 0) {
             return res.status(404).json({ error: "Blog not found" });
+        }
+        const existingAuthor = existingBlog.rows[0].by_user;
+        if (existingAuthor !== req.user.id) {
+            const adminCheck = await client.query("SELECT 1 FROM admins WHERE user_id=$1", [req.user.id]);
+            const isAdmin = adminCheck.rows.length > 0;
+            if (!isAdmin) {
+                return res.status(403).json({ error: "You are not authorized to edit this blogpost" });
+            }
         }
         const existingBanner = existingBlog.rows[0].banner_image_url;
         const existingTitle = existingBlog.rows[0].title;
@@ -412,6 +432,14 @@ app.patch('/comment/:id', requireAuth, async (req, res) => {
         if (existingComment.rows.length === 0) {
             return res.status(404).json({ error: "Comment not found" });
         }
+        const existingCommentAuthor = existingComment.rows[0].user_id;
+        if (req.user.id !== existingCommentAuthor) {
+            const adminCheck = await client.query("SELECT 1 FROM admins WHERE user_id=$1", [req.user.id]);
+            const isAdmin = adminCheck.rows.length > 0;
+            if (!isAdmin) {
+                return res.status(403).json({ error: "You are not authorized to edit this comment" });
+            }
+        }
         const existingText = existingComment.rows[0].text;
         const modifiedText = req.body.commentText || existingText;
         await client.query("UPDATE comment SET text = $1, last_updated = NOW() WHERE id = $2", [modifiedText, index]);
@@ -440,6 +468,14 @@ app.patch('/reply/:id', requireAuth, async (req, res) => {
         if (existingReply.rows.length === 0) {
             return res.status(404).json({ error: 'Reply not found' });
         }
+        const existingReplyAuthor = existingReply.rows[0].user_id;
+        if (req.user.id !== existingReplyAuthor) {
+            const adminCheck = await client.query("SELECT 1 FROM admnins WHERE user_id=$1", [req.user.id]);
+            const isAdmin = adminCheck.result.length > 0;
+            if (!isAdmin) {
+                return res.status(403).json({ error: "You are not Authorized to edit this reply" });
+            }
+        }
         const existingText = existingReply.rows[0].text;
         const modifiedText = req.body.replyText || existingText;
         await client.query("UPDATE reply SET text = $1, last_updated = NOW() WHERE id = $2 ", [modifiedText, index]);
@@ -464,6 +500,17 @@ app.delete('/posts/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
+        const result = await client.query("SELECT by_user FROM blog WHERE id=$1", [index]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: `Blog with id ${index} not found.` });
+        }
+        const blog = result.rows[0];
+        const isOwner = blog.by_user === req.user.id;
+        const adminCheck = await client.query("SELECT 1 FROM admins WHERE user_id = $1 LIMIT 1", [req.user.id]);
+        const isAdmin = adminCheck.rows.length > 0;
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ error: "You are not authorized to delete this blog." });
+        }
         await client.query('DELETE FROM blog WHERE id = $1', [index]);
         res.sendStatus(200);
     } catch (error) {
@@ -477,6 +524,13 @@ app.delete('/comments/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
+        const result = await client.query("SELECT user_id FROM comment WHERE id=$1", [index]);
+        const isOwner = result.rows[0].user_id === req.user.id;
+        const adminCheck = await client.query("SELECT 1 FROM admins WHERE user_id=$1 LIMIT 1", [req.user.id]);
+        const isAdmin = adminCheck.rows.length > 0;
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ error: "You are not authorized to delete this comment" });
+        }
         await client.query('DELETE FROM comment WHERE id = $1', [index]);
         res.sendStatus(200);
     } catch (error) {
@@ -490,6 +544,13 @@ app.delete('/reply/:id', requireAuth, async (req, res) => {
     const index = parseInt(req.params.id);
     const client = await connectionPool.connect();
     try {
+        const result = await client.query("SELECT user_id FROM reply WHERE id=$1", [index]);
+        const isOwner = result.rows[0].user_id === req.user.id;
+        const adminCheck = await client.query("SELECT 1 FROM admins WHERE user_id=$1 LIMIT 1", [req.user.id]);
+        const isAdmin = adminCheck.result.length > 0;
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ error: "You are not authorized to delete this reply" });
+        }
         await client.query("DELETE FROM reply WHERE id= $1", [index]);
         res.sendStatus(200);
     } catch (error) {
