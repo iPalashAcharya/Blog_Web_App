@@ -207,20 +207,11 @@ app.post('/check-likes', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
-    const author_name = req.body.username;
+    const author_id = req.body.username;
     const tags = req.body.blogTags.split(',').map(tag => tag.trim());
     let is_draft = req.body.createButton === 'create' ? false : true;
     const client = await connectionPool.connect();
     try {
-        console.log("🔍 Fetching author ID...");
-        const authorResult = await client.query('SELECT id FROM users WHERE name=$1', [author_name]);
-
-        if (authorResult.rows.length === 0) {
-            console.error("❌ Author not found in database!");
-            return res.status(400).json({ error: "Author not found" });
-        }
-        const author_id = authorResult.rows[0].id;
-        console.log("✅ Author ID:", author_id);
         const blogInsertResult = await client.query('INSERT INTO blog (banner_image_url,title,content,is_draft,published_on,creation_date,last_updated,by_user) VALUES ($1,$2,$3,$4,NOW(),NOW(),NOW(),$5) RETURNING id', [req.body.blogBanner, req.body.blogTitle, req.body.blogContent, is_draft, author_id]);
         const blog_id = blogInsertResult.rows[0].id;
         for (const tag of tags) {
@@ -379,7 +370,8 @@ app.patch('/posts/:id', async (req, res) => {
         const newBanner = req.body.banner || existingBanner;
         const newTitle = req.body.title || existingTitle;
         const newContent = req.body.content || existingContent;
-        await client.query('UPDATE blog SET banner_image_url =$1, title = $2, content = $3, last_updated = NOW() WHERE id = $4', [newBanner, newTitle, newContent, index]);
+        let is_draft = req.body.createButton === 'create' ? false : true;
+        await client.query('UPDATE blog SET banner_image_url =$1, title = $2, content = $3,is_draft=$4, last_updated = NOW() WHERE id = $5', [newBanner, newTitle, newContent, is_draft, index]);
         if (req.body.tags) {
             const newTags = req.body.tags.split(',').map(tag => tag.trim());
             await client.query('DELETE FROM blog_tag WHERE blog_id = $1', [index]);

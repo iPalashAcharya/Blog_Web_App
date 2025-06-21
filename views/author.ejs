@@ -101,7 +101,7 @@
                     <%if(locals.paginatedPosts){%>
                     <%for(let post of paginatedPosts){%>
                         <div class="blogCard">
-                            <a href="blog/<%=post.blog_id%>">
+                            <a href="/blog/<%=post.blog_id%>">
                             <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
                             <div class="tags">
                                     <%for (const tag of post.tags.split(',').map(x=>x.trim())){%>
@@ -136,7 +136,7 @@
                     <%if(paginatedDraftPosts && paginatedDraftPosts.length>0){%>
                         <%for(let post of paginatedDraftPosts){%>
                             <div class="blogCard">
-                                <a href="blog/<%=post.blog_id%>">
+                                <a href="/blog/<%=post.blog_id%>">
                                     <div class="blogCardImage"><img src="<%=post.banner_image_url%>"></div>
                 
                                     <div class="tags">

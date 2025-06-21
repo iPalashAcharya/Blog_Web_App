@@ -300,7 +300,7 @@ app.post('/api/update-name', requireAuth, async (req, res) => {
 });
 
 app.post('/api/post', requireAuth, async (req, res) => {
-    req.body.username = req.user.name;
+    req.body.id = req.user.id;
     try {
         const response = await axios.post(`${API_URL}/posts`, req.body);
         console.log(response.data);
