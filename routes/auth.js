@@ -19,7 +19,7 @@ router.post("/register", async (req, res) => {
         }
         const hash = await bcrypt.hash(password, saltRounds);
 
-        const result2 = await client.query("INSERT INTO users(name,password,bio) values($1,$2,$3) RETURNING *;", [username, hash, bio]);
+        const result2 = await client.query("INSERT INTO users(name,profile_icon_url,password,bio) values($1,$2,$3,$4) RETURNING *;", [username, `/images/default_profile.png`, hash, bio]);
         const user = result2.rows[0];
 
         req.login(user, (err) => {

@@ -22,8 +22,7 @@ app.set('trust proxy', true);
 async function getAllBlogs() {
     const client = await connectionPool.connect();
     try {
-        //const result = await client.query("SELECT blog.id AS blog_id,blog.title,blog.content,blog.published_on,blog.creation_date,blog.last_updated,blog.is_draft,users.name AS author_name,STRING_AGG(tag.tag_name,', ') AS tags, COUNT(DISTINCT blog_like.id) AS blog_like_count,COUNT(DISTINCT comment.id) AS comment_count,COUNT(DISTINCT comment_like.id) AS comment_like_count,JSON_AGG(DISTINCT JSONB_BUILD_OBJECT('comment_id',comment.id,'comment_text',comment.text,'commented_by',comment_users.name,'commented_on',comment.creation_date,'comment_likes',(SELECT COUNT(*) FROM comment_like WHERE comment_like.comment_id=comment.id)))FILTER (WHERE comment.id IS NOT NULL) AS comments FROM blog JOIN users ON blog.by_user = users.id LEFT JOIN blog_like ON blog.id = blog_like.blog_id LEFT JOIN comment ON blog.id = comment.blog_id LEFT JOIN users AS comment_users ON comment.user_id = comment_users.id LEFT JOIN comment_like ON comment.id = comment_like.comment_id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id GROUP BY blog.id,users.name");
-        const result = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url, blog.title, blog.content, blog.published_on, blog.creation_date, blog.last_updated, blog.is_draft, users.name AS author_name, STRING_AGG(DISTINCT tag.tag_name, ', ') AS tags, COUNT(DISTINCT blog_like.id) AS blog_likes_count, COUNT(DISTINCT comment.id) AS total_comments, COUNT(DISTINCT comment_like.id) AS total_comment_likes, JSON_AGG( DISTINCT JSONB_BUILD_OBJECT( 'comment_id', comment.id, 'comment_text', comment.text,'commented_by_id',comment_users.id, 'commented_by', comment_users.name,'commented_by_profile',comment_users.profile_icon_url, 'commented_on', comment.creation_date, 'comment_likes', ( SELECT COUNT(*) FROM comment_like WHERE comment_like.comment_id = comment.id ), 'replies',( SELECT COALESCE ( JSON_AGG( JSONB_BUILD_OBJECT( 'reply_id',r.id, 'reply_text',r.text,'replied_by_id',ru.id, 'replied_by',ru.name,'replied_by_profile',ru.profile_icon_url, 'replied_on',r.last_updated,'parent_reply_id', r.parent_reply_id,'replying_to',(SELECT rpu.name FROM reply pr JOIN users rpu ON pr.user_id=rpu.id WHERE pr.id = r.parent_reply_id),'reply_likes',( SELECT COUNT(*) FROM reply_like WHERE reply_like.reply_id = r.id ) ) ) FILTER (WHERE r.id IS NOT NULL), '[]'::json ) FROM reply r JOIN users ru ON r.user_id = ru.id WHERE r.comment_id = comment.id ) ) ) FILTER (WHERE comment.id IS NOT NULL) AS comments FROM blog JOIN users ON blog.by_user = users.id LEFT JOIN blog_like ON blog.id = blog_like.blog_id LEFT JOIN comment ON blog.id = comment.blog_id LEFT JOIN users AS comment_users ON comment.user_id = comment_users.id LEFT JOIN comment_like ON comment.id = comment_like.comment_id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id GROUP BY blog.id, users.name;");
+        const result = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url, blog.title, blog.content, blog.published_on, blog.creation_date, blog.last_updated, blog.is_draft, users.id AS author_id,users.name AS author_name, STRING_AGG(DISTINCT tag.tag_name, ', ') AS tags, COUNT(DISTINCT blog_like.id) AS blog_likes_count, COUNT(DISTINCT comment.id) AS total_comments, COUNT(DISTINCT comment_like.id) AS total_comment_likes, JSON_AGG( DISTINCT JSONB_BUILD_OBJECT( 'comment_id', comment.id, 'comment_text', comment.text,'commented_by_id',comment_users.id, 'commented_by', comment_users.name,'commented_by_profile',comment_users.profile_icon_url, 'commented_on', comment.creation_date, 'comment_likes', ( SELECT COUNT(*) FROM comment_like WHERE comment_like.comment_id = comment.id ), 'replies',( SELECT COALESCE ( JSON_AGG( JSONB_BUILD_OBJECT( 'reply_id',r.id, 'reply_text',r.text,'replied_by_id',ru.id, 'replied_by',ru.name,'replied_by_profile',ru.profile_icon_url, 'replied_on',r.last_updated,'parent_reply_id', r.parent_reply_id,'replying_to',(SELECT rpu.name FROM reply pr JOIN users rpu ON pr.user_id=rpu.id WHERE pr.id = r.parent_reply_id),'reply_likes',( SELECT COUNT(*) FROM reply_like WHERE reply_like.reply_id = r.id ) ) ) FILTER (WHERE r.id IS NOT NULL), '[]'::json ) FROM reply r JOIN users ru ON r.user_id = ru.id WHERE r.comment_id = comment.id ) ) ) FILTER (WHERE comment.id IS NOT NULL) AS comments FROM blog JOIN users ON blog.by_user = users.id LEFT JOIN blog_like ON blog.id = blog_like.blog_id LEFT JOIN comment ON blog.id = comment.blog_id LEFT JOIN users AS comment_users ON comment.user_id = comment_users.id LEFT JOIN comment_like ON comment.id = comment_like.comment_id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id GROUP BY blog.id, users.name,users.id;");
         return result.rows;
     } catch (error) {
         console.error("Error executing query", error.stack);
@@ -33,20 +32,6 @@ async function getAllBlogs() {
         client.release();
     }
 }
-
-/*async function getSingleBlog(blog_id) {
-    const client = await connectionPool.connect();
-    try {
-        const result = await client.query("SELECT blog.id AS blog_id,blog.title,blog.content,blog.published_on,blog.creation_date,blog.last_updated,blog.is_draft,users.name AS author_name,STRING_AGG(tag.tag_name,', ') AS tags, COUNT(DISTINCT blog_like.id) AS blog_like_count,COUNT(DISTINCT comment.id) AS comment_count,COUNT(DISTINCT comment_like.id) AS comment_like_count,JSON_AGG(DISTINCT JSONB_BUILD_OBJECT('comment_id',comment.id,'comment_text',comment.text,'commented_by',comment_users.name,'commented_on',comment.creation_date,'comment_likes',(SELECT COUNT(*) FROM comment_like WHERE comment_like.comment_id=comment.id)))FILTER (WHERE comment.id IS NOT NULL) AS comments FROM blog JOIN users ON blog.by_user = users.id LEFT JOIN blog_like ON blog.id = blog_like.blog_id LEFT JOIN comment ON blog.id = comment.blog_id LEFT JOIN users AS comment_users ON comment.user_id = comment_users.id LEFT JOIN comment_like ON comment.id = comment_like.comment_id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.id=$1 GROUP BY blog.id,users.name", [blog_id]);
-        return result.rows;
-    } catch (error) {
-        console.error('Error Executing Query', error.stack);
-        return [];
-    }
-    finally {
-        client.release();
-    }
-}*/
 
 app.get('/posts', async (req, res) => {
     try {
@@ -59,18 +44,13 @@ app.get('/posts', async (req, res) => {
 
 app.get('/posts/:id', async (req, res) => {
     try {
-        /*const blog_id = parseInt(req.params.id);
-        const blog = await getSingleBlog(blog_id);*/
         const index = parseInt(req.params.id);
-        /*console.log("Looking for blog with ID:", index);*/
         const blogs = await getAllBlogs();
-        //console.log("Available blog IDs:", blogs.map(blog => blog.blog_id));
         const blog = blogs.find((post) => post.blog_id === index);
         if (!blog) {
             console.log(`Blog ${index} not found in ${blogs.length} available blogs`);
             return res.status(404).json({ message: "Blog not found" });
         }
-        //console.log(`Found blog ${index}`);
         res.json(blog);
     } catch (error) {
         console.error("ERROR:", error.message);
@@ -207,12 +187,12 @@ app.post('/check-likes', async (req, res) => {
 });
 
 app.post('/posts', async (req, res) => {
-    const author_id = req.body.username;
+    const author_id = req.body.id;
     const tags = req.body.blogTags.split(',').map(tag => tag.trim());
     let is_draft = req.body.createButton === 'create' ? false : true;
     const client = await connectionPool.connect();
     try {
-        const blogInsertResult = await client.query('INSERT INTO blog (banner_image_url,title,content,is_draft,published_on,creation_date,last_updated,by_user) VALUES ($1,$2,$3,$4,NOW(),NOW(),NOW(),$5) RETURNING id', [req.body.blogBanner, req.body.blogTitle, req.body.blogContent, is_draft, author_id]);
+        const blogInsertResult = await client.query('INSERT INTO blog (banner_image_url,title,content,is_draft,published_on,creation_date,last_updated,by_user) VALUES ($1,$2,$3,$4,NOW(),NOW(),NOW(),$5) RETURNING id', [req.body.blogBanner || `/images/default_banner.png`, req.body.blogTitle, req.body.blogContent, is_draft, author_id]);
         const blog_id = blogInsertResult.rows[0].id;
         for (const tag of tags) {
             const tagResult = await client.query('INSERT INTO tag (tag_name) SELECT CAST($1 AS VARCHAR) WHERE NOT EXISTS (SELECT 1 FROM tag WHERE tag_name=$1) RETURNING id;', [tag]);
@@ -286,7 +266,7 @@ app.post('/comment', async (req, res) => {
 });
 
 app.post('/reply_like', async (req, res) => {
-    const userId = req.body.user.id; //make this dynamic
+    const userId = req.body.user.id;
     const replyId = req.body.reply_id;
     const client = await connectionPool.connect();
     try {
@@ -314,7 +294,7 @@ app.post('/reply_like', async (req, res) => {
 });
 
 app.post('/blog_like', async (req, res) => {
-    const user_id = req.body.user.id; //make this dynamic
+    const user_id = req.body.user.id;
     const post_id = req.body.post_id;
     const client = await connectionPool.connect();
     try {
@@ -404,7 +384,6 @@ app.patch('/comment/:id', async (req, res) => {
         if (existingComment.rows.length === 0) {
             return res.status(404).json({ error: "Comment not found" });
         }
-        //const blogId = existingComment.rows[0].blog_id;
         const existingText = existingComment.rows[0].text;
         const modifiedText = req.body.commentText || existingText;
         await client.query("UPDATE comment SET text = $1, last_updated = NOW() WHERE id = $2", [modifiedText, index]);

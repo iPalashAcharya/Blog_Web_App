@@ -24,6 +24,7 @@
             };
         </script>
         <% } %>
+    <div class="page-wrapper">
     <header>
         <div class="navbarContainer">
             <div class="navbarLogo"><embed class="logo" src="/images/Logo.svg"></div>
@@ -47,7 +48,7 @@
             </div>
         </div>
     </header>
-    <main id="mainSection">
+    <main id="mainSection" class="content">
         <div class="blogContentContainer">
             <div class="blogContentTitle">
                 <div class="tags">
@@ -62,7 +63,7 @@
                 <h1><%=post.title%></h1>
                 <div class="blogDetails">
                     <i class="far fa-user"></i>
-                    <p class="work-sans authorName"><%=post.author_name%></p>
+                    <a href="/author/<%=post.author_id%>"><p class="work-sans authorName"><%=post.author_name%></p></a>
                     <p class="work-sans"><%=new Date(post.last_updated).toLocaleDateString("en-US",{year:'numeric',month:'long',day:'numeric'})%></p>
                     <i class="<%= user && user.blogLiked ? 'fa-solid' : 'fa-regular' %> fa-heart like blogLike" data-post-id="<%=post.blog_id%>"></i> <p><%=post.blog_likes_count%></p> 
                 </div>
@@ -226,6 +227,7 @@
             </ul>
         </div>
     </footer>
+</div>
 
     <script>
         document.getElementById('hamburger').addEventListener('click', () => {

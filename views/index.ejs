@@ -17,6 +17,7 @@
 </head>
 
 <body>
+    <div class="page-wrapper">
     <header>
         <div class="navbarContainer">
             <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
@@ -41,7 +42,7 @@
         </div>
     </header>
 
-    <main>
+    <main class="content">
         <section id="heroSection">
             <div class="heroContainer">
                 <a href="blog/<%=featuredPost.blog_id%>">
@@ -124,6 +125,7 @@
             </ul>
         </div>
     </footer>
+    </div>
     <script>
 
         document.getElementById('hamburger').addEventListener('click', () => {

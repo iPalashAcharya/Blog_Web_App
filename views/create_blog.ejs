@@ -17,6 +17,7 @@
 </head>
 
 <body>
+    <div class="page-wrapper">
     <header>
         <div class="navbarContainer">
             <div class="navbarLogo"><embed class="logo" src="../images/Logo.svg"></div>
@@ -41,7 +42,7 @@
         </div>
     </header>
 
-    <main>
+    <main class="content">
         <div class="blogCreationContainer">
             <%if(locals.post){%>
             <form id="blogCreationForm" method="post" action="/api/edit/<%=post.blog_id%>">
@@ -125,6 +126,7 @@
             </ul>
         </div>
     </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script>
