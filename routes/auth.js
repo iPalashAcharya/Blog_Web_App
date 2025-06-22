@@ -46,10 +46,6 @@ router.post("/register", async (req, res) => {
     }
 });
 
-/*router.post('/login', rateLimitAuth, passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login',
-}));*/
 router.post('/login', rateLimitAuth, (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         if (err) return next(err);
