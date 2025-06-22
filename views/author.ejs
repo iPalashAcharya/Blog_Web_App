@@ -49,7 +49,7 @@
                     <div class="authorDetails">
                         <div class="authorImage">
                             <%if(publicUser.id===loggedInUser.id){%>
-                            <button class="profileUpload" onclick="handleProfile()">Upload Profile Picture Url</button>
+                            <button class="profileUpload work-sans" onclick="handleProfile()">Upload Profile Picture Url</button>
                             <%}%>
                             <%if(publicUser.id===loggedInUser.id){%>
                             <img src="<%=loggedInUser.profile_icon_url%>" alt="Author Profile Picture">
@@ -59,23 +59,23 @@
                         </div>
                         <div class="authorInfo">
                             <%if(publicUser.id===loggedInUser.id){%>
-                            <h3><%=loggedInUser.name%> <button class="updateName" onclick="updateName()"><i class="fa-solid fa-pen"></i></button></h3>
+                            <h3 class="work-sans"><%=loggedInUser.name%> <button class="updateName" onclick="updateName()"><i class="fa-solid fa-pen"></i></button></h3>
                             <%}else{%>
-                            <h3>
+                            <h3 class="work-sans">
                                 <%=publicUser.name%>
                             </h3>
                             <%}%>
                         </div>
                     </div>
-                    <p class="authorBio">
+                    <p class="authorBio work-sans">
                         <%if(loggedInUser.id===publicUser.id){%>
                         <%if(loggedInUser.bio){%>
-                        <%=loggedInUser.bio%> <button class = "updateBio" onclick="addBio()"><i class="fa-solid fa-pen"></i></button>
+                        <%=loggedInUser.bio%><button class = "updateBio" onclick="addBio()"><i class="fa-solid fa-pen"></i></button>
                         <%}else{%>
                             <button onclick="addBio()">Add Bio</button>
                         <%}%>
                         <%}else{%>
-                        <%=publicUser.bio%>
+                        <%=publicUser.bio%></p>
                         <%}%>
                     </p>
                     <div class="authorSocials">
@@ -191,7 +191,7 @@
                                         <% } %>
                 </div>
 
-                <div id="draftPagination" class="pagination <%= activeType === 'draft' ? '' : 'hidden' %>">
+                <div id="draftPagination" class="pagination work-sans <%= activeType === 'draft' ? '' : 'hidden' %>">
                     <% if (currentPage> 1) { %>
                         <a href="/author/<%=publicUser.id%>?type=draft&page=<%= currentPage - 1 %>" class="page-link">Previous</a>
                         <% } %>
