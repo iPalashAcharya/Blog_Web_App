@@ -99,9 +99,9 @@ app.get('/author/:id', requireAuth, async (req, res) => {
         const isSelf = author_id === req.user.id;
         let blogQuery;
         if (isSelf) {
-            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio", [author_id]);
+            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio ORDER BY blog.creation_date DESC", [author_id]);
         } else {
-            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 AND blog.is_draft=false GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio", [author_id]);
+            blogQuery = await client.query("SELECT blog.id AS blog_id,blog.banner_image_url,blog.title,blog.is_draft,blog.last_updated,blog.by_user,users.id AS author_id,users.name,users.profile_icon_url,users.bio,STRING_AGG(tag.tag_name,', ') AS tags FROM blog LEFT JOIN users ON blog.by_user=users.id LEFT JOIN blog_tag ON blog.id = blog_tag.blog_id LEFT JOIN tag ON blog_tag.tag_id = tag.id WHERE blog.by_user = $1 AND blog.is_draft=false GROUP BY blog.id,users.id,users.name,users.profile_icon_url,users.bio ORDER BY blog.creation_date DESC", [author_id]);
         }
         res.json(blogQuery.rows);
     } catch (error) {
