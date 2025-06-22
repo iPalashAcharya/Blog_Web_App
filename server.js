@@ -28,6 +28,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
+        secure: false,
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
@@ -216,6 +218,36 @@ app.get('/delete/:id', requireAuth, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send("Error deleting post");
+    }
+});
+
+app.post('/delete-profile', requireAuth, async (req, res) => {
+    const client = await connectionPool.connect();
+    try {
+        await client.query("DELETE FROM users WHERE id=$1", [req.user.id]);
+        req.logout((err) => {
+            if (err) {
+                return res.status(500).json({ message: 'Logout failed' });
+            }
+            req.session.destroy((err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Session destruction failed' });
+                }
+                res.clearCookie('connect.sid');
+                return res.status(200).json({ message: 'Profile deleted and logged out successfully' });
+            });
+        });
+    } catch (error) {
+        console.error("ERROR:", error.message);
+        if (error.response) {
+            console.error("RESPONSE DATA:", error.response.data);
+            console.error("STATUS:", error.response.status);
+        } else {
+            console.error("STACK:", error.stack);
+        }
+        res.status(500).send("Internal Server Error");
+    } finally {
+        client.release();
     }
 });
 

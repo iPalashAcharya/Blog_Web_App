@@ -53,7 +53,7 @@ passport.use('google', new GoogleStrategy(
 
             // Create new user
             const insertResult = await client.query(
-                `INSERT INTO users (name, profile_icon_url,password, google_id)
+                `INSERT INTO users (name, profile_icon_url, password, google_id)
                 VALUES ($1, $2, $3,$4)
                 RETURNING *`,
                 [profile.displayName, profile.photos[0].value, 'google', profile.id]

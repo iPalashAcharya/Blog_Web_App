@@ -31,6 +31,7 @@
                                 <%if(loggedInUser){%>
                                     <li><a href="/author/<%=loggedInUser?.id%>">My Profile</a></li>
                                     <li><a href="#" id="logout-link">Logout</a></li>
+                                    <li><a href="" id="delete-link">Delete Profile</a></li>
                                 <%}else{%>
                                     <li><a href="/login">Login</a></li>
                                 <%}%>
@@ -362,6 +363,31 @@
                     alert('Something went wrong.');
                 }
             });
+
+            document.getElementById('delete-link').addEventListener('click', async function (e) {
+                    e.preventDefault();
+
+                    const confirmDelete = confirm("Are you sure you want to delete your account");
+                    if (!confirmDelete) return;
+
+                    try {
+                        const response = await fetch('/delete-profile', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+
+                        if (response.ok) {
+                            alert('Profile Deleted successfully!');
+                            window.location.href = '/';
+                        } else {
+                            const error = await response.text();
+                            alert('deletion failed: ' + error);
+                        }
+                    } catch (err) {
+                        console.error('deletion error:', err);
+                        alert('Something went wrong.');
+                    }
+                });
             
         function confirmDelete(title) {
             return confirm(`Are you sure you want to delete the blog titled "${title}"?`);
