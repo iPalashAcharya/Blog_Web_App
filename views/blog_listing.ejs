@@ -50,6 +50,7 @@
             </div>
         </section>
 
+        <%if(locals.featuredPost || paginatedPosts.length>0){%>
         <section id="listingHeroSection">
             <div class="createButtonContainer">
                 <a href="/new"><button class="createButton">
@@ -132,6 +133,9 @@
                 </div>
             </div>
         </section>
+        <%}else{%>
+            <h1>No Posts Yet</h1>
+        <%}%>
     </main>
 
     <footer>

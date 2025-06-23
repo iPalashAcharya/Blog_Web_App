@@ -12,7 +12,7 @@ const { requireAuth, requireAdmin, rateLimitAuth } = require('./config/passport'
 env.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 //const API_URL = "http://localhost:4000";
 
 app.set('trust proxy', true);

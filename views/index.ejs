@@ -43,6 +43,7 @@
     </header>
 
     <main class="content">
+        <%if(locals.featuredPost || paginatedPosts.length>0){%>
         <section id="heroSection">
             <div class="heroContainer">
                 <a href="blog/<%=featuredPost.blog_id%>">
@@ -113,6 +114,9 @@
             </div>
             </div>
         </section>
+        <%}else{%>
+            <h1>No Posts Yet</h1>
+        <%}%>
     </main>
     <footer>
         <div class="footerContainer">
